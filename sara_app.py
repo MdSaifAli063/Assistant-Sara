@@ -6,1383 +6,1704 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
-
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR   = Path(__file__).resolve().parent
 PROFILE_PATH = BASE_DIR / "sara_profile.json"
 HOST = "127.0.0.1"
 PORT = 8010
 
-
+# ─────────────────────────────────────────────────────────────────────────────
+# HTML / CSS / JS  (everything embedded in one file for easy deployment)
+# ─────────────────────────────────────────────────────────────────────────────
 HTML_PAGE = r"""<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Sara — Your Room Companion</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <style>
-    /* ── TOKENS ─────────────────────────────────────── */
-    :root{
-      --sage:#3d6b5e;--sage-lt:#6a9e8f;--sage-dk:#243f38;
-      --cream:#f5ede0;--parchment:#ede0cf;--warm:#c8956b;
-      --blush:#d4788a;--blush-lt:#e8a0b0;--blush-dk:#9d4f60;
-      --gold:#d4a843;--gold-lt:#e8c87a;
-      --wood-dk:#5c3420;--wood:#7a4830;--wood-lt:#a86040;
-      --sky-top:#b8d4e8;--sky-mid:#cde2f0;--sky-bt:#dff0f8;
-      --floor:#c8a882;--floor-dk:#a08060;
-      --wall-lt:#f0e8d8;--wall-mid:#e8dcc8;
-      --text:#2a1f18;--text-mute:#7a6858;
-      --radius:20px;--shadow:0 24px 64px rgba(42,31,24,.16);
-    }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sara — Your Room Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════════════════════════
+   DESIGN TOKENS
+════════════════════════════════════════════════════════════ */
+:root{
+  /* Room palette — warm jewel tones */
+  --wall-a:#f5e6c8; --wall-b:#f0dbb8; --wall-c:#e8d0a8;
+  --floor-a:#c8934a; --floor-b:#a87030; --floor-c:#8a5a20;
+  --sky-a:#87ceeb;  --sky-b:#b8e4f8;  --sky-c:#d4f0ff;
+  --grass-a:#5caa60;--grass-b:#44884a;
+  /* Accent palette */
+  --coral:#e8614a;  --teal:#2eb8a0;   --violet:#7c5cbf;
+  --gold:#f0a830;   --rose:#e05080;   --mint:#48c898;
+  --amber:#f08020; --sky:#3498db;
+  /* UI */
+  --panel-bg:#1a0e2e; --panel-2:#231540;
+  --text-light:#f8f0ff; --text-mute:#9988bb;
+  --card-bg:rgba(255,255,255,.06); --card-border:rgba(255,255,255,.1);
+  --accent:#a070ff; --accent2:#ff7eb3;
+  --r:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text-light)}
 
-    /* ── RESET ──────────────────────────────────────── */
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden}
-    body{
-      font-family:'DM Sans',sans-serif;
-      background:linear-gradient(160deg,#2a3f38 0%,#1a2820 100%);
-      color:var(--text);
-    }
+/* ════════════════════════════════════════════════════════════
+   APP SHELL
+════════════════════════════════════════════════════════════ */
+.app{display:grid;grid-template-columns:1fr 420px;height:100vh}
 
-    /* ── LAYOUT ─────────────────────────────────────── */
-    .app{
-      display:grid;
-      grid-template-columns:1fr 400px;
-      height:100vh;
-      gap:0;
-    }
+/* ════════════════════════════════════════════════════════════
+   ROOM CONTAINER
+════════════════════════════════════════════════════════════ */
+.room-wrap{
+  position:relative;overflow:hidden;
+  background:linear-gradient(160deg,#1a0e2e 0%,#120820 100%);
+}
 
-    /* ── LEFT — ROOM ─────────────────────────────────── */
-    .room-wrap{
-      position:relative;
-      overflow:hidden;
-      background:linear-gradient(180deg,#1e3530 0%,#2d4840 100%);
-    }
+/* ─── 3-D ROOM BOX ─── */
+.scene{position:absolute;inset:0;perspective:800px;perspective-origin:50% 40%}
+.room-box{position:absolute;inset:0;transform-style:preserve-3d}
 
-    /* ── ROOM SCENE (3-D perspective box) ──────────────── */
-    .scene{
-      position:absolute;
-      inset:0;
-      perspective:900px;
-      perspective-origin:50% 42%;
-    }
-    .room-box{
-      position:absolute;
-      inset:0;
-      transform-style:preserve-3d;
-    }
+/* Back wall */
+.wall-back{
+  position:absolute;inset:0 0 32% 0;
+  background:
+    linear-gradient(180deg,var(--wall-a) 0%,var(--wall-b) 60%,var(--wall-c) 100%);
+}
+/* decorative wallpaper dots */
+.wall-back::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    radial-gradient(circle,rgba(200,140,80,.18) 1.5px,transparent 1.5px);
+  background-size:44px 44px;
+  background-position:22px 22px;
+}
+/* wainscoting panel lower 30% */
+.wall-back::after{
+  content:'';position:absolute;left:0;right:0;bottom:0;height:30%;
+  background:linear-gradient(180deg,#e0c898,#cdb070);
+  border-top:4px solid rgba(180,130,60,.45);
+  box-shadow:inset 0 8px 20px rgba(0,0,0,.08);
+}
 
-    /* ── WALLS ───────────────────────────────────────── */
-    .wall{position:absolute;backface-visibility:hidden}
+/* Side walls — perspective wedges */
+.wall-left{
+  position:absolute;top:0;bottom:32%;left:0;width:20%;
+  background:linear-gradient(90deg,#d4bc90,#e8d4a8);
+  transform-origin:left center;
+  transform:rotateY(55deg);
+}
+.wall-right{
+  position:absolute;top:0;bottom:32%;right:0;width:20%;
+  background:linear-gradient(270deg,#d4bc90,#e8d4a8);
+  transform-origin:right center;
+  transform:rotateY(-55deg);
+}
 
-    /* Back wall */
-    .wall-back{
-      inset:0 0 34% 0;
-      background:linear-gradient(180deg,var(--wall-lt) 0%,var(--wall-mid) 100%);
-      transform:translateZ(0px);
-    }
-    /* subtle wallpaper pattern */
-    .wall-back::before{
-      content:'';position:absolute;inset:0;
-      background-image:
-        radial-gradient(circle at 20px 20px,rgba(180,150,110,.08) 1px,transparent 1px),
-        radial-gradient(circle at 60px 60px,rgba(180,150,110,.06) 1px,transparent 1px);
-      background-size:80px 80px;
-    }
-    /* wainscoting rail */
-    .wall-back::after{
-      content:'';position:absolute;
-      left:0;right:0;bottom:0;height:28%;
-      background:linear-gradient(180deg,#e2d4be,#d8c8ae);
-      border-top:3px solid rgba(180,150,110,.4);
-    }
+/* Ceiling strip */
+.ceiling{
+  position:absolute;top:0;left:0;right:0;height:6px;
+  background:linear-gradient(180deg,#c8a870,#e0c898);
+  z-index:1;
+}
 
-    /* Left wall */
-    .wall-left{
-      top:0;bottom:34%;left:0;width:22%;
-      background:linear-gradient(90deg,#d0c4b0,#e0d4c0);
-      transform-origin:left center;
-      transform:rotateY(52deg) translateX(-2px);
-    }
-    /* Right wall */
-    .wall-right{
-      top:0;bottom:34%;right:0;width:22%;
-      background:linear-gradient(270deg,#d0c4b0,#e0d4c0);
-      transform-origin:right center;
-      transform:rotateY(-52deg) translateX(2px);
-    }
+/* Floor */
+.floor{
+  position:absolute;left:0;right:0;bottom:0;height:34%;
+  background:linear-gradient(180deg,var(--floor-a),var(--floor-b),var(--floor-c));
+  transform-origin:bottom;
+  transform:rotateX(38deg) translateY(8px);
+  overflow:hidden;
+}
+/* wood grain planks */
+.floor::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(
+    90deg,transparent 0px,transparent 89px,
+    rgba(0,0,0,.07) 89px,rgba(0,0,0,.07) 90px
+  );
+}
+.floor::after{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(
+    0deg,transparent 0px,transparent 19px,
+    rgba(255,255,255,.04) 19px,rgba(255,255,255,.04) 20px
+  );
+}
 
-    /* Floor */
-    .floor{
-      position:absolute;
-      left:0;right:0;bottom:0;height:36%;
-      background:linear-gradient(180deg,var(--floor) 0%,var(--floor-dk) 100%);
-      transform-origin:bottom center;
-      transform:rotateX(40deg) translateY(10px);
-    }
-    /* floor planks */
-    .floor::before{
-      content:'';position:absolute;inset:0;
-      background:repeating-linear-gradient(
-        90deg,
-        transparent 0px,
-        transparent 119px,
-        rgba(0,0,0,.06) 119px,
-        rgba(0,0,0,.06) 120px
-      );
-    }
-    .floor::after{
-      content:'';position:absolute;inset:0;
-      background:repeating-linear-gradient(
-        180deg,
-        transparent 0px,
-        transparent 29px,
-        rgba(0,0,0,.04) 29px,
-        rgba(0,0,0,.04) 30px
-      );
-    }
+/* ─── WINDOW ─── */
+.window-outer{
+  position:absolute;top:5%;left:50%;transform:translateX(-50%);
+  width:30%;z-index:3;
+}
+.window-frame{
+  background:#fff8f0;
+  border:16px solid #c8905a;
+  border-radius:10px 10px 4px 4px;
+  overflow:hidden;
+  aspect-ratio:3/4;
+  box-shadow:
+    0 0 0 4px #a87040,
+    8px 12px 40px rgba(0,0,0,.25),
+    inset 0 0 0 2px rgba(255,255,255,.5);
+  position:relative;
+}
+/* sky gradient */
+.win-sky{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,#4fa8e0 0%,#87ceeb 45%,#b8e8ff 70%,#dff5a0 100%);
+  overflow:hidden;
+}
+/* animated sun */
+.sun{
+  position:absolute;right:16%;top:12%;
+  width:38px;height:38px;
+  background:radial-gradient(circle at 35% 35%,#fff8c0,#ffd020 60%,#ffaa00);
+  border-radius:50%;
+  box-shadow:0 0 24px 8px rgba(255,200,0,.5);
+  animation:sunPulse 4s ease-in-out infinite;
+}
+@keyframes sunPulse{50%{box-shadow:0 0 36px 14px rgba(255,200,0,.4)}}
+/* clouds */
+.cloud{position:absolute;animation:cloudDrift linear infinite}
+.cloud-body{background:#fff;border-radius:50px;position:relative}
+.cloud-b1{position:absolute;background:#fff;border-radius:50%}
+.c1 .cloud-body{width:64px;height:20px;top:22%;left:-70px}
+.c1 .cloud-b1{width:36px;height:30px;top:-16px;left:8px}
+.c1{animation-duration:20s;animation-delay:0s}
+.c2 .cloud-body{width:48px;height:16px;top:40%;left:-55px;opacity:.9}
+.c2 .cloud-b1{width:26px;height:22px;top:-13px;left:6px}
+.c2{animation-duration:27s;animation-delay:7s}
+.c3 .cloud-body{width:56px;height:18px;top:58%;left:-65px;opacity:.75}
+.c3 .cloud-b1{width:30px;height:26px;top:-14px;left:8px}
+.c3{animation-duration:23s;animation-delay:3s}
+@keyframes cloudDrift{to{transform:translateX(600px)}}
+/* hills */
+.hill{position:absolute;bottom:0;border-radius:60% 60% 0 0}
+.h1{width:130%;height:44%;left:-15%;background:linear-gradient(180deg,#6abb70,#4a9a50)}
+.h2{width:90%;height:34%;left:5%;background:linear-gradient(180deg,#58a860,#3a8840)}
+.h3{width:70%;height:26%;right:-5%;background:linear-gradient(180deg,#7acc80,#5aac60)}
+/* tiny trees */
+.win-tree{position:absolute;bottom:24%}
+.win-tree-trunk{width:5px;height:16px;background:#6a3e20;margin:0 auto;border-radius:1px}
+.win-tree-top{width:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:22px solid #2e7a38;margin:0 auto;margin-top:-3px}
+/* cross bars */
+.win-h{position:absolute;top:50%;left:0;right:0;height:5px;background:#c8905a;transform:translateY(-50%);z-index:2}
+.win-v{position:absolute;left:50%;top:0;bottom:0;width:5px;background:#c8905a;transform:translateX(-50%);z-index:2}
+/* curtains */
+.curtain-wrap{position:absolute;inset:-16px;z-index:4;pointer-events:none}
+.curtain-l,.curtain-r{
+  position:absolute;top:0;bottom:0;width:36%;
+  background:linear-gradient(180deg,#e84070,#ff6898,#c82858);
+  box-shadow:inset -4px 0 12px rgba(0,0,0,.15);
+}
+.curtain-l{
+  left:0;
+  clip-path:polygon(0 0,100% 0,75% 100%,0 100%);
+}
+.curtain-r{
+  right:0;
+  clip-path:polygon(0 0,100% 0,100% 100%,25% 100%);
+}
+.curtain-l::before,.curtain-r::before{
+  content:'';position:absolute;
+  top:0;width:100%;height:100%;
+  background:repeating-linear-gradient(
+    180deg,
+    transparent 0,transparent 18px,
+    rgba(255,255,255,.08) 18px,rgba(255,255,255,.08) 20px
+  );
+}
+.valance{
+  position:absolute;top:-16px;left:-16px;right:-16px;height:26px;
+  background:linear-gradient(90deg,#c02050,#f04880,#e83068,#f04880,#c02050);
+  border-radius:4px;z-index:5;
+  box-shadow:0 4px 12px rgba(0,0,0,.2);
+}
+/* window sill */
+.win-sill{
+  height:14px;background:linear-gradient(180deg,#d4a06a,#b07838);
+  border-radius:0 0 6px 6px;
+  box-shadow:0 4px 10px rgba(0,0,0,.2);
+}
+/* window flower box */
+.flower-box{
+  height:18px;background:linear-gradient(180deg,#c84830,#a03020);
+  border-radius:4px;
+  position:relative;overflow:visible;
+}
+.flower{position:absolute;bottom:10px;font-size:18px}
+.f1{left:8px}.f2{left:28px}.f3{left:50px}.f4{right:8px}.f5{right:28px}
 
-    /* ── WINDOW ──────────────────────────────────────── */
-    .window-frame{
-      position:absolute;
-      top:6%;left:50%;
-      width:28%;
-      aspect-ratio:4/5;
-      transform:translateX(-50%);
-      background:#fff;
-      border:14px solid #c8a87a;
-      border-radius:8px 8px 4px 4px;
-      box-shadow:
-        inset 0 0 0 3px rgba(255,255,255,.5),
-        0 8px 32px rgba(42,31,24,.2),
-        0 2px 8px rgba(42,31,24,.1);
-      overflow:hidden;
-      z-index:2;
-    }
-    .window-sky{
-      position:absolute;inset:0;
-      background:linear-gradient(180deg,var(--sky-top),var(--sky-mid),var(--sky-bt));
-      overflow:hidden;
-    }
-    /* clouds */
-    .cloud{
-      position:absolute;
-      background:#fff;
-      border-radius:50px;
-      opacity:.85;
-      animation:drift linear infinite;
-    }
-    .cloud::before,.cloud::after{
-      content:'';position:absolute;
-      background:#fff;border-radius:50%;
-    }
-    .cloud.c1{width:70px;height:22px;top:18%;left:-80px;animation-duration:18s;animation-delay:0s}
-    .cloud.c1::before{width:38px;height:32px;top:-16px;left:10px}
-    .cloud.c1::after{width:28px;height:24px;top:-12px;left:32px}
-    .cloud.c2{width:50px;height:16px;top:38%;left:-60px;animation-duration:24s;animation-delay:6s;opacity:.7}
-    .cloud.c2::before{width:28px;height:22px;top:-12px;left:8px}
-    .cloud.c3{width:60px;height:18px;top:58%;left:-70px;animation-duration:20s;animation-delay:3s;opacity:.6}
-    .cloud.c3::before{width:32px;height:28px;top:-14px;left:10px}
-    @keyframes drift{to{transform:translateX(calc(100vw + 100px))}}
+/* ─── WALL DECOR ─── */
+/* Hanging picture frame */
+.picture-frame{
+  position:absolute;left:7%;top:14%;
+  width:12%;aspect-ratio:1;
+  background:linear-gradient(135deg,#60a8d0,#9050c0,#e05080);
+  border:6px solid #c8a060;
+  border-radius:4px;
+  box-shadow:4px 6px 20px rgba(0,0,0,.2),inset 0 0 0 2px rgba(255,255,255,.2);
+  z-index:2;
+}
+.picture-frame::before{/* nail */
+  content:'';position:absolute;top:-14px;left:50%;transform:translateX(-50%);
+  width:4px;height:10px;background:#a07838;border-radius:2px;
+}
+.picture-frame::after{/* abstract art lines */
+  content:'';position:absolute;inset:4px;
+  background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.3),transparent 60%),
+             radial-gradient(circle at 70% 70%,rgba(255,255,255,.2),transparent 50%);
+}
+/* Clock on wall */
+.wall-clock{
+  position:absolute;right:26%;top:10%;
+  width:52px;height:52px;
+  background:#fff8e8;
+  border:4px solid #c8a060;
+  border-radius:50%;
+  box-shadow:2px 4px 14px rgba(0,0,0,.18);
+  z-index:2;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.55rem;font-weight:800;color:#5a3820;
+}
 
-    /* Hills outside */
-    .hill{position:absolute;border-radius:50% 50% 0 0}
-    .hill1{width:120%;height:48%;bottom:0;left:-10%;background:linear-gradient(180deg,#7aaa88,#5a8a68)}
-    .hill2{width:80%;height:36%;bottom:0;left:10%;background:linear-gradient(180deg,#6a9a78,#4a7a58)}
-    .hill3{width:60%;height:28%;bottom:0;right:0;background:linear-gradient(180deg,#88b094,#68906e)}
-    /* tiny tree */
-    .tree{position:absolute;bottom:28%}
-    .tree-trunk{width:6px;height:20px;background:#5c3c1e;border-radius:2px;margin:0 auto}
-    .tree-top{width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-bottom:28px solid #3a6e48;margin:0 auto;margin-top:-4px}
-    .tree1{left:18%}.tree2{left:34%;bottom:32%}.tree3{right:14%}
+/* ─── BOOKSHELF ─── */
+.bookshelf{
+  position:absolute;right:4%;top:5%;
+  width:17%;z-index:3;
+}
+.shelf-unit{
+  background:linear-gradient(180deg,#7a4828,#5a3018);
+  border-radius:10px 10px 4px 4px;
+  padding:6px;
+  box-shadow:6px 10px 30px rgba(0,0,0,.35),inset -3px 0 8px rgba(0,0,0,.2);
+}
+.shelf-row{
+  background:linear-gradient(180deg,#9a6038,#7a4020);
+  border-radius:4px;
+  padding:5px 3px 6px;
+  margin-bottom:5px;
+  display:flex;align-items:flex-end;gap:2px;
+  position:relative;
+}
+.shelf-row::after{
+  content:'';position:absolute;left:0;right:0;bottom:0;height:5px;
+  background:rgba(0,0,0,.25);border-radius:0 0 4px 4px;
+}
+.shelf-row:last-child{margin-bottom:0}
+.bk{border-radius:2px 2px 0 0;flex-shrink:0}
+/* Row 1 */
+.b01{width:11px;height:40px;background:linear-gradient(180deg,#e84040,#b82020)}
+.b02{width:9px;height:50px;background:linear-gradient(180deg,#f0a020,#c07800)}
+.b03{width:13px;height:36px;background:linear-gradient(180deg,#4090e0,#1860b0)}
+.b04{width:8px;height:46px;background:linear-gradient(180deg,#50c070,#208840)}
+.b05{width:12px;height:38px;background:linear-gradient(180deg,#d060c0,#a03090)}
+.b06{width:10px;height:44px;background:linear-gradient(180deg,#60d0d0,#1898a0)}
+/* Row 2 */
+.b07{width:14px;height:42px;background:linear-gradient(180deg,#f08050,#c04820)}
+.b08{width:9px;height:52px;background:linear-gradient(180deg,#8060e0,#5030a0)}
+.b09{width:11px;height:38px;background:linear-gradient(180deg,#50b880,#287850)}
+.b10{width:13px;height:48px;background:linear-gradient(180deg,#e8c040,#b08800)}
+.b11{width:10px;height:34px;background:linear-gradient(180deg,#e05070,#a82848)}
+.mini-globe{width:18px;height:18px;background:radial-gradient(circle at 35% 30%,#60c0ff,#0060b0);border-radius:50%;margin-bottom:2px;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+/* Row 3 */
+.b12{width:12px;height:44px;background:linear-gradient(180deg,#a0e060,#609030)}
+.b13{width:10px;height:36px;background:linear-gradient(180deg,#ff8080,#e03030)}
+.b14{width:14px;height:54px;background:linear-gradient(180deg,#60a8f0,#2060c0)}
+.b15{width:9px;height:40px;background:linear-gradient(180deg,#f0c080,#c08830)}
+.shelf-plant-sm{width:16px;height:20px;background:linear-gradient(180deg,#50a060,#307040);border-radius:50% 50% 3px 3px;margin-bottom:2px}
 
-    /* Window dividers */
-    .win-cross-h{position:absolute;top:50%;left:0;right:0;height:5px;background:#c8a87a;transform:translateY(-50%);z-index:2}
-    .win-cross-v{position:absolute;left:50%;top:0;bottom:0;width:5px;background:#c8a87a;transform:translateX(-50%);z-index:2}
+/* ─── RUG ─── */
+.rug{
+  position:absolute;left:50%;bottom:33%;
+  transform:translateX(-50%) rotateX(40deg);
+  width:52%;height:70px;
+  background:
+    linear-gradient(90deg,#8020a0 0%,#c040e0 20%,#e060ff 50%,#c040e0 80%,#8020a0 100%);
+  border-radius:10px;z-index:3;
+  box-shadow:0 10px 24px rgba(0,0,0,.25);
+}
+.rug::before{
+  content:'';position:absolute;inset:6px;
+  border:3px solid rgba(255,255,255,.25);border-radius:6px;
+}
+.rug::after{
+  content:'';position:absolute;inset:12px;
+  background:repeating-linear-gradient(
+    90deg,transparent 0,transparent 10px,
+    rgba(255,255,255,.1) 10px,rgba(255,255,255,.1) 12px
+  );
+}
 
-    /* Curtains */
-    .curtain{
-      position:absolute;top:-14px;bottom:-14px;width:38%;
-      border-radius:0 0 8px 8px;
-      z-index:3;
-      overflow:hidden;
-    }
-    .curtain::before,.curtain::after{
-      content:'';position:absolute;
-      top:0;bottom:0;width:50%;
-      background:inherit;
-      clip-path:polygon(0 0,100% 0,85% 100%,15% 100%);
-    }
-    .curtain-l{
-      left:-14px;
-      background:linear-gradient(90deg,#c05070,#e07090);
-      clip-path:polygon(0 0,100% 0,80% 100%,0 100%);
-    }
-    .curtain-r{
-      right:-14px;
-      background:linear-gradient(270deg,#c05070,#e07090);
-      clip-path:polygon(0 0,100% 0,100% 100%,20% 100%);
-    }
-    /* curtain valance */
-    .valance{
-      position:absolute;top:-14px;left:-14px;right:-14px;height:24px;
-      background:linear-gradient(90deg,#b04060,#e07090,#b04060);
-      border-radius:4px;
-      z-index:4;
-      box-shadow:0 4px 8px rgba(0,0,0,.2);
-    }
+/* ─── DESK ─── */
+.desk-wrap{
+  position:absolute;left:50%;bottom:32%;
+  transform:translateX(-50%);
+  width:60%;z-index:5;
+}
+.desk-top{
+  background:linear-gradient(180deg,#b87848,#8a5828);
+  border-radius:12px 12px 0 0;height:16px;
+  box-shadow:-2px -4px 12px rgba(255,255,255,.08),0 4px 8px rgba(0,0,0,.2);
+  position:relative;
+}
+.desk-top::before{/* desk edge highlight */
+  content:'';position:absolute;top:2px;left:16px;right:16px;height:3px;
+  background:rgba(255,255,255,.2);border-radius:2px;
+}
+.desk-body{
+  background:linear-gradient(180deg,#8a5828,#6a3c10);
+  height:12px;
+}
+.desk-legs{display:flex;justify-content:space-between;padding:0 12px}
+.desk-leg{
+  width:10px;height:52px;
+  background:linear-gradient(180deg,#6a3c10,#4a2408);
+  border-radius:0 0 5px 5px;
+}
+/* items on desk */
+.desk-items{
+  position:absolute;bottom:16px;left:0;right:0;
+  display:flex;align-items:flex-end;gap:6px;padding:0 8px;
+}
+/* Laptop */
+.laptop{position:relative;margin-left:12px}
+.laptop-screen{
+  width:70px;height:46px;
+  background:linear-gradient(160deg,#0a1a30,#0d2040);
+  border:3px solid #4a6080;border-radius:5px 5px 0 0;
+  overflow:hidden;position:relative;
+}
+.laptop-screen::before{/* screen content */
+  content:'';position:absolute;inset:4px;
+  background:linear-gradient(135deg,#0a3060,#0060a0 40%,#00a0c0);
+  border-radius:2px;
+}
+.laptop-screen::after{/* code lines */
+  content:'';position:absolute;left:6px;top:7px;right:6px;
+  height:2px;background:rgba(0,255,180,.4);
+  box-shadow:0 5px 0 rgba(0,200,255,.3),0 10px 0 rgba(100,255,200,.2),0 15px 0 rgba(0,255,180,.15),0 20px 0 rgba(0,200,255,.1);
+}
+.laptop-hinge{width:74px;height:4px;background:linear-gradient(180deg,#6080a0,#405060);border-radius:0 0 3px 3px}
+.laptop-base{width:78px;height:6px;background:linear-gradient(180deg,#a0b8c8,#7090a8);border-radius:0 0 4px 4px}
+/* Mug */
+.mug-wrap{position:relative;margin-left:4px}
+.mug{
+  width:26px;height:30px;
+  background:linear-gradient(160deg,#fff0e0,#e8d8c0);
+  border-radius:4px 4px 8px 8px;
+  position:relative;overflow:hidden;
+}
+.mug-liquid{
+  position:absolute;top:7px;left:3px;right:3px;height:8px;
+  background:linear-gradient(180deg,#d0783a,#b05a18);
+  border-radius:2px;
+}
+.mug-handle{
+  position:absolute;right:-9px;top:7px;
+  width:9px;height:14px;
+  border:3px solid #e8d8c0;border-left:none;
+  border-radius:0 7px 7px 0;
+}
+.steam{position:absolute;bottom:30px;left:4px;display:flex;gap:5px}
+.steam-p{
+  width:3px;border-radius:2px;
+  background:linear-gradient(0deg,transparent,rgba(255,255,255,.7));
+  animation:steamUp 2.2s ease-in-out infinite;
+}
+.steam-p:nth-child(1){height:14px;animation-delay:0s}
+.steam-p:nth-child(2){height:18px;animation-delay:.5s}
+.steam-p:nth-child(3){height:12px;animation-delay:1s}
+@keyframes steamUp{
+  0%,100%{opacity:0;transform:translateY(0) scaleX(1)}
+  45%{opacity:1;transform:translateY(-10px) scaleX(1.8)}
+  80%{opacity:0;transform:translateY(-20px) scaleX(.4)}
+}
+/* Desk lamp */
+.lamp{position:absolute;left:6px;bottom:16px;z-index:6}
+.lamp-base{width:22px;height:7px;background:linear-gradient(180deg,#c0c8d8,#8090a8);border-radius:12px}
+.lamp-pole{
+  width:5px;height:34px;
+  background:linear-gradient(180deg,#c0c8d8,#8090a8);
+  margin:0 auto;border-radius:3px;
+  transform:rotate(-8deg);transform-origin:bottom center;
+}
+.lamp-arm{
+  width:5px;height:24px;
+  background:linear-gradient(180deg,#c0c8d8,#8090a8);
+  margin:0 auto;border-radius:3px;
+  transform:rotate(22deg);transform-origin:bottom left;margin-left:4px;
+}
+.lamp-shade{
+  width:36px;height:18px;
+  background:linear-gradient(180deg,#f8d040,#e0a000);
+  border-radius:50% 50% 10px 10px;
+  margin-left:-10px;
+  box-shadow:0 12px 30px rgba(240,180,0,.5);
+  position:relative;
+}
+.lamp-glow{
+  position:absolute;top:16px;left:-14px;
+  width:64px;height:24px;
+  background:radial-gradient(ellipse,rgba(240,180,0,.3),transparent 70%);
+  border-radius:50%;pointer-events:none;
+}
+/* Desk plant */
+.deskplant{position:relative;margin-left:auto;margin-right:8px}
+.dpot{width:26px;height:20px;background:linear-gradient(180deg,#d84028,#a02810);border-radius:2px 2px 7px 7px;clip-path:polygon(5% 0,95% 0,100% 100%,0 100%)}
+.dstem{width:3px;height:30px;background:linear-gradient(180deg,#48a058,#288038);margin:0 auto;margin-top:-2px;border-radius:2px}
+.dl{position:absolute;background:linear-gradient(135deg,#60c070,#30a040);border-radius:50%}
+.dl1{width:22px;height:13px;top:2px;left:-15px;transform:rotate(-28deg)}
+.dl2{width:20px;height:12px;top:7px;right:-13px;transform:rotate(24deg)}
+.dl3{width:18px;height:11px;top:14px;left:-11px;transform:rotate(-44deg)}
+.dl4{width:15px;height:10px;top:-2px;left:3px;transform:rotate(12deg)}
+/* Notebook on desk */
+.notebook{
+  width:38px;height:48px;
+  background:linear-gradient(180deg,#ff9060,#e06030);
+  border-radius:3px 6px 6px 3px;
+  margin-bottom:0;margin-left:4px;
+  position:relative;overflow:hidden;
+}
+.notebook::before{/* lines */
+  content:'';position:absolute;inset:6px 4px;
+  background:repeating-linear-gradient(180deg,transparent,transparent 5px,rgba(255,255,255,.4) 5px,rgba(255,255,255,.4) 6px);
+}
+.notebook::after{/* spine */
+  content:'';position:absolute;left:0;top:0;bottom:0;width:6px;
+  background:linear-gradient(180deg,#c04010,#e06030);
+}
 
-    /* ── BOOKSHELF ────────────────────────────────────── */
-    .bookshelf{
-      position:absolute;
-      right:6%;top:8%;
-      width:18%;
-      z-index:3;
-    }
-    .shelf-unit{
-      background:linear-gradient(180deg,var(--wood) 0%,var(--wood-dk) 100%);
-      border-radius:10px 10px 4px 4px;
-      padding:8px;
-      box-shadow:
-        4px 8px 24px rgba(42,31,24,.35),
-        inset -2px 0 6px rgba(0,0,0,.2);
-    }
-    .shelf-row{
-      display:flex;
-      align-items:flex-end;
-      gap:3px;
-      padding:6px 4px 4px;
-      background:var(--wood-lt);
-      border-radius:4px;
-      margin-bottom:6px;
-      position:relative;
-    }
-    .shelf-row::after{
-      content:'';position:absolute;
-      left:0;right:0;bottom:0;height:5px;
-      background:rgba(0,0,0,.2);
-      border-radius:0 0 4px 4px;
-    }
-    .shelf-row:last-child{margin-bottom:0}
-    .book{
-      border-radius:2px 2px 0 0;
-      flex-shrink:0;
-    }
-    /* row 1 */
-    .bk1{width:13px;height:44px;background:linear-gradient(180deg,#5a8f6a,#3a6f4a)}
-    .bk2{width:10px;height:52px;background:linear-gradient(180deg,#d4943a,#b4741a)}
-    .bk3{width:14px;height:38px;background:linear-gradient(180deg,#b05878,#904058)}
-    .bk4{width:9px;height:48px;background:linear-gradient(180deg,#5878b0,#385890)}
-    .bk5{width:12px;height:42px;background:linear-gradient(180deg,#d4c43a,#b4a41a)}
-    /* row 2 */
-    .bk6{width:14px;height:46px;background:linear-gradient(180deg,#78b08a,#489a5a)}
-    .bk7{width:11px;height:50px;background:linear-gradient(180deg,#e07858,#c05838)}
-    .bk8{width:13px;height:40px;background:linear-gradient(180deg,#9058b0,#703890)}
-    .bk9{width:10px;height:54px;background:linear-gradient(180deg,#4890c8,#2870a8)}
-    .bk10{width:12px;height:36px;background:linear-gradient(180deg,#e0a858,#c08838)}
-    /* row 3 */
-    .bk11{width:16px;height:48px;background:linear-gradient(180deg,#c87888,#a85868)}
-    .bk12{width:10px;height:42px;background:linear-gradient(180deg,#78c8a8,#489888)}
-    .bk13{width:13px;height:56px;background:linear-gradient(180deg,#f0d068,#d0b048)}
-    .bk14{width:11px;height:38px;background:linear-gradient(180deg,#8898d0,#6878b0)}
-    /* small decor on shelf */
-    .shelf-plant{width:18px;height:22px;background:linear-gradient(180deg,#5a9068,#3a7048);border-radius:50% 50% 4px 4px;margin-bottom:2px}
-    .shelf-deco{width:12px;height:16px;background:linear-gradient(180deg,#d4843a,#b46420);border-radius:50% 50% 4px 4px;margin-bottom:2px}
+/* ─── FAIRY LIGHTS (string on wall) ─── */
+.lights-string{
+  position:absolute;top:3%;left:3%;right:3%;
+  height:30px;z-index:2;pointer-events:none;
+}
+.lights-string svg{width:100%;height:100%;overflow:visible}
+.fairy-light{animation:glow 1.8s ease-in-out infinite}
+.fl1{animation-delay:0s} .fl2{animation-delay:.25s} .fl3{animation-delay:.5s}
+.fl4{animation-delay:.75s} .fl5{animation-delay:1s} .fl6{animation-delay:1.25s}
+.fl7{animation-delay:1.5s} .fl8{animation-delay:.1s} .fl9{animation-delay:.6s}
+.fl10{animation-delay:1.1s}
+@keyframes glow{
+  0%,100%{opacity:.6;filter:blur(0px)}
+  50%{opacity:1;filter:blur(1.5px)}
+}
 
-    /* ── DESK ────────────────────────────────────────── */
-    .desk-wrap{
-      position:absolute;
-      left:50%;bottom:36%;
-      transform:translateX(-50%);
-      width:56%;
-      z-index:4;
-    }
-    .desk-surface{
-      background:linear-gradient(180deg,var(--wood-lt),var(--wood));
-      border-radius:10px 10px 0 0;
-      height:18px;
-      box-shadow:0 -2px 8px rgba(0,0,0,.15);
-    }
-    .desk-body{
-      background:linear-gradient(180deg,var(--wood),var(--wood-dk));
-      height:14px;
-      border-radius:0 0 6px 6px;
-    }
-    .desk-legs{
-      display:flex;
-      justify-content:space-between;
-      padding:0 8px;
-    }
-    .desk-leg{
-      width:8px;height:42px;
-      background:linear-gradient(180deg,var(--wood-dk),#3c2010);
-      border-radius:0 0 4px 4px;
-    }
+/* ─── SARA AVATAR ─── */
+.avatar-wrap{
+  position:absolute;left:50%;bottom:33%;
+  transform:translateX(-50%);
+  z-index:10;
+  animation:saraFloat 5s ease-in-out infinite;
+}
+@keyframes saraFloat{
+  0%,100%{transform:translateX(-50%) translateY(0px)}
+  50%{transform:translateX(-50%) translateY(-12px)}
+}
+.avatar-shadow{
+  position:absolute;bottom:-8px;left:50%;
+  transform:translateX(-50%);
+  width:100px;height:18px;
+  background:radial-gradient(ellipse,rgba(42,20,10,.4),transparent 70%);
+  border-radius:50%;
+}
+.sara-svg{width:180px;filter:drop-shadow(0 20px 40px rgba(180,60,120,.3))}
 
-    /* Desk items */
-    .desk-items{
-      position:absolute;
-      bottom:18px;left:0;right:0;
-      display:flex;
-      align-items:flex-end;
-      gap:0;
-      padding:0 10px;
-    }
+/* ─── SPEECH BUBBLE ─── */
+.speech{
+  position:absolute;
+  left:calc(50% + 100px);
+  bottom:calc(33% + 200px);
+  max-width:200px;
+  background:rgba(255,252,250,.97);
+  border:1.5px solid rgba(220,160,200,.4);
+  border-radius:20px 20px 20px 4px;
+  padding:13px 15px;
+  font-size:.78rem;line-height:1.65;
+  color:#3a1a30;
+  box-shadow:0 20px 50px rgba(160,60,120,.2);
+  z-index:11;
+  animation:popIn .5s cubic-bezier(.34,1.56,.64,1);
+  backdrop-filter:blur(10px);
+}
+.speech::before{/* triangle tail */
+  content:'';position:absolute;
+  bottom:-1px;left:-10px;
+  border:8px solid transparent;
+  border-right-color:rgba(220,160,200,.4);
+  border-bottom-color:rgba(220,160,200,.4);
+}
+@keyframes popIn{from{opacity:0;transform:scale(.7) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
 
-    /* Laptop */
-    .laptop-wrap{
-      position:relative;
-      margin-left:10px;
-    }
-    .laptop-screen{
-      width:62px;height:40px;
-      background:linear-gradient(135deg,#1a2535,#243548);
-      border-radius:4px 4px 0 0;
-      border:3px solid #3a4555;
-      position:relative;
-      transform-origin:bottom center;
-      transform:rotateX(-15deg);
-      overflow:hidden;
-    }
-    .laptop-screen::before{
-      content:'';position:absolute;inset:4px;
-      background:linear-gradient(135deg,#0f3048,#1a4058);
-      border-radius:2px;
-    }
-    /* screen glow lines */
-    .laptop-screen::after{
-      content:'';position:absolute;
-      left:6px;top:8px;right:6px;
-      height:2px;background:rgba(100,200,255,.3);
-      box-shadow:0 5px 0 rgba(100,200,255,.2),0 10px 0 rgba(100,200,255,.15),0 15px 0 rgba(100,200,255,.1);
-    }
-    .laptop-base{
-      width:66px;height:5px;
-      background:linear-gradient(180deg,#b0b8c0,#8090a0);
-      border-radius:0 0 4px 4px;
-    }
+/* ─── ROOM OVERLAYS ─── */
+.room-vignette{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 40%,transparent 35%,rgba(15,8,30,.55) 100%);
+  pointer-events:none;z-index:20;
+}
+.room-border{
+  position:absolute;inset:0;
+  border:20px solid rgba(15,8,30,.6);
+  pointer-events:none;z-index:21;
+  box-shadow:inset 0 0 80px rgba(0,0,0,.35);
+}
 
-    /* Tea mug */
-    .mug-wrap{position:relative;margin-left:8px}
-    .mug{
-      width:22px;height:26px;
-      background:linear-gradient(180deg,#f0ebe0,#e0d5c0);
-      border-radius:4px 4px 6px 6px;
-      position:relative;
-      box-shadow:inset -2px 0 4px rgba(0,0,0,.1);
-    }
-    .mug::before{/* tea inside */
-      content:'';position:absolute;
-      top:5px;left:3px;right:3px;height:6px;
-      background:linear-gradient(180deg,#c8783a,#b06028);
-      border-radius:2px;
-    }
-    .mug-handle{
-      position:absolute;
-      right:-8px;top:6px;
-      width:8px;height:12px;
-      border:3px solid #e0d5c0;
-      border-left:none;
-      border-radius:0 6px 6px 0;
-    }
-    .steam{
-      position:absolute;
-      bottom:26px;
-      display:flex;gap:4px;
-    }
-    .steam-line{
-      width:2px;
-      background:linear-gradient(180deg,transparent,rgba(255,255,255,.6));
-      border-radius:1px;
-      animation:steam-rise 2s ease-in-out infinite;
-    }
-    .steam-line:nth-child(1){height:12px;animation-delay:0s}
-    .steam-line:nth-child(2){height:16px;animation-delay:.4s}
-    .steam-line:nth-child(3){height:10px;animation-delay:.8s}
-    @keyframes steam-rise{
-      0%,100%{opacity:0;transform:translateY(0) scaleX(1)}
-      40%{opacity:.8;transform:translateY(-8px) scaleX(1.5)}
-      80%{opacity:0;transform:translateY(-16px) scaleX(.5)}
-    }
+/* ─── ROOM HEADER ─── */
+.room-hdr{
+  position:absolute;top:16px;left:16px;right:16px;
+  display:flex;justify-content:space-between;align-items:center;
+  z-index:22;
+}
+.rbadge{
+  background:rgba(10,5,25,.75);
+  color:#e8d8ff;
+  padding:8px 16px;border-radius:999px;
+  font-size:.75rem;font-weight:700;letter-spacing:.06em;
+  backdrop-filter:blur(16px);
+  border:1px solid rgba(160,100,255,.2);
+}
+.rclock{
+  background:rgba(10,5,25,.75);
+  color:#e8d8ff;
+  padding:8px 18px;border-radius:999px;
+  font:.75rem/1 'Playfair Display',serif;
+  backdrop-filter:blur(16px);
+  border:1px solid rgba(160,100,255,.2);
+}
 
-    /* Desk plant */
-    .desk-plant{
-      position:relative;
-      margin-left:auto;
-      margin-right:6px;
-    }
-    .pot{
-      width:24px;height:18px;
-      background:linear-gradient(180deg,#c87848,#a85828);
-      border-radius:2px 2px 6px 6px;
-      clip-path:polygon(5% 0,95% 0,100% 100%,0 100%);
-    }
-    .plant-stem{
-      width:3px;height:28px;
-      background:linear-gradient(180deg,#4a8a58,#2a6a38);
-      margin:0 auto;
-      margin-top:-2px;
-      border-radius:2px;
-    }
-    .plant-leaf{
-      position:absolute;
-      background:linear-gradient(135deg,#5a9a68,#3a7a48);
-      border-radius:50%;
-    }
-    .leaf1{width:20px;height:12px;top:4px;left:-14px;transform:rotate(-30deg)}
-    .leaf2{width:18px;height:11px;top:8px;right:-12px;transform:rotate(25deg)}
-    .leaf3{width:16px;height:10px;top:12px;left:-10px;transform:rotate(-45deg)}
-    .leaf4{width:14px;height:9px;top:0;left:2px;transform:rotate(10deg)}
+/* ════════════════════════════════════════════════════════════
+   RIGHT PANEL
+════════════════════════════════════════════════════════════ */
+.panel{
+  display:flex;flex-direction:column;
+  background:var(--panel-bg);
+  border-left:1px solid rgba(160,100,255,.12);
+  overflow:hidden;
+  position:relative;
+}
+/* subtle gradient shimmer background */
+.panel::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse at 80% 10%,rgba(160,80,255,.08),transparent 60%),
+    radial-gradient(ellipse at 20% 90%,rgba(255,80,180,.06),transparent 60%);
+  pointer-events:none;
+}
 
-    /* Desk lamp */
-    .lamp-wrap{
-      position:absolute;
-      left:10px;bottom:18px;
-      z-index:5;
-    }
-    .lamp-base{
-      width:20px;height:6px;
-      background:linear-gradient(180deg,#8890a0,#6878 90);
-      border-radius:10px;
-    }
-    .lamp-arm1{
-      width:4px;height:30px;
-      background:linear-gradient(180deg,#9898a8,#7878 90);
-      margin:0 auto;
-      border-radius:2px;
-      transform:rotate(-10deg);
-      transform-origin:bottom center;
-    }
-    .lamp-arm2{
-      width:4px;height:24px;
-      background:linear-gradient(180deg,#9898a8,#7878 90);
-      margin:0 auto;
-      border-radius:2px;
-      transform:rotate(20deg);
-      transform-origin:bottom left;
-    }
-    .lamp-head{
-      width:32px;height:16px;
-      background:linear-gradient(180deg,#f0d060,#d0a830);
-      border-radius:50% 50% 8px 8px;
-      margin-left:-12px;
-      box-shadow:0 8px 24px rgba(240,200,60,.4);
-    }
-    /* lamp glow on desk */
-    .lamp-glow{
-      position:absolute;
-      bottom:0;left:-10px;
-      width:80px;height:20px;
-      background:radial-gradient(ellipse,rgba(240,200,60,.25),transparent 70%);
-      border-radius:50%;
-      pointer-events:none;
-    }
+/* Panel header */
+.p-head{
+  padding:18px 20px 14px;
+  border-bottom:1px solid rgba(160,100,255,.12);
+  position:relative;z-index:1;
+}
+.p-title{
+  font-family:'Playfair Display',serif;
+  font-size:1.6rem;
+  background:linear-gradient(135deg,#d0a0ff,#ff90c0);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  line-height:1;
+}
+.p-sub{font-size:.75rem;color:var(--text-mute);margin-top:5px;font-weight:600}
 
-    /* ── FLOOR RUG ────────────────────────────────────── */
-    .rug{
-      position:absolute;
-      left:50%;bottom:35%;
-      transform:translateX(-50%) rotateX(40deg);
-      width:50%;height:60px;
-      background:linear-gradient(90deg,#8a4a6a,#b86a8a,#d48aaa,#b86a8a,#8a4a6a);
-      border-radius:8px;
-      z-index:3;
-      box-shadow:0 8px 16px rgba(0,0,0,.2);
-    }
-    .rug::before{
-      content:'';position:absolute;
-      inset:6px;
-      border:2px solid rgba(255,255,255,.2);
-      border-radius:4px;
-    }
+/* Status pills */
+.p-pills{
+  display:flex;gap:6px;padding:10px 20px;flex-wrap:wrap;
+  border-bottom:1px solid rgba(160,100,255,.08);
+  position:relative;z-index:1;
+}
+.spill{
+  padding:5px 12px;border-radius:999px;
+  font-size:.7rem;font-weight:700;letter-spacing:.04em;
+  border:1px solid rgba(255,255,255,.1);
+}
+.sp-a{background:rgba(80,200,120,.12);color:#70e898;border-color:rgba(80,200,120,.25)}
+.sp-b{background:rgba(255,100,160,.1);color:#ff90c0;border-color:rgba(255,100,160,.2)}
+.sp-c{background:rgba(160,100,255,.1);color:#c090ff;border-color:rgba(160,100,255,.2)}
 
-    /* ── SARA AVATAR ──────────────────────────────────── */
-    .avatar-wrap{
-      position:absolute;
-      left:50%;bottom:35%;
-      transform:translateX(-50%);
-      z-index:10;
-      animation:float 5s ease-in-out infinite;
-    }
-    @keyframes float{
-      0%,100%{transform:translateX(-50%) translateY(0)}
-      50%{transform:translateX(-50%) translateY(-10px)}
-    }
-    .avatar-shadow{
-      position:absolute;
-      bottom:-6px;left:50%;
-      transform:translateX(-50%);
-      width:90px;height:16px;
-      background:radial-gradient(ellipse,rgba(42,31,24,.35),transparent 70%);
-      border-radius:50%;
-    }
+/* Check-in banner */
+.ci-banner{
+  margin:12px 20px 0;
+  background:linear-gradient(135deg,#2d1060,#4a1890);
+  border:1px solid rgba(160,100,255,.25);
+  border-radius:16px;padding:14px 16px;
+  position:relative;z-index:1;
+}
+.ci-banner strong{font-size:.82rem;color:#d8b8ff;letter-spacing:.03em}
+.ci-text{font-size:.76rem;margin-top:4px;color:#b090d8;line-height:1.55}
+.mood-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
+.mood-btn{
+  padding:6px 13px;border-radius:999px;
+  border:1px solid rgba(200,150,255,.3);
+  background:rgba(200,150,255,.1);
+  color:#e0c8ff;
+  font:700 .72rem 'Nunito',sans-serif;
+  cursor:pointer;transition:all .2s;
+}
+.mood-btn:hover{background:rgba(200,150,255,.25);border-color:rgba(200,150,255,.5)}
 
-    /* SVG avatar sizing */
-    .avatar-svg{
-      width:160px;
-      filter:drop-shadow(0 16px 32px rgba(42,31,24,.3));
-    }
+/* ─── LANG TOGGLE ─── */
+.lang-row{
+  display:flex;gap:8px;padding:10px 20px;
+  border-bottom:1px solid rgba(160,100,255,.08);
+  position:relative;z-index:1;align-items:center;
+}
+.lang-label{font-size:.72rem;color:var(--text-mute);font-weight:700;letter-spacing:.04em;margin-right:4px}
+.lang-btn{
+  padding:5px 14px;border-radius:999px;
+  font:700 .72rem 'Nunito',sans-serif;
+  cursor:pointer;transition:all .2s;border:1px solid;
+}
+.lang-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.lang-btn:not(.active){background:transparent;border-color:rgba(160,100,255,.25);color:var(--text-mute)}
+.voice-indicator{
+  margin-left:auto;display:flex;align-items:center;gap:6px;
+  font-size:.72rem;color:var(--text-mute);
+}
+.voice-dot{
+  width:8px;height:8px;border-radius:50%;background:#444;
+  transition:background .3s;
+}
+.voice-dot.speaking{background:#50e090;animation:voicePulse .6s ease-in-out infinite alternate}
+.voice-dot.listening{background:#ff9040;animation:voicePulse .4s ease-in-out infinite alternate}
+@keyframes voicePulse{to{transform:scale(1.5);opacity:.6}}
 
-    /* ── SPEECH BUBBLE ────────────────────────────────── */
-    .speech-bubble{
-      position:absolute;
-      left:calc(50% + 90px);
-      bottom:calc(35% + 180px);
-      max-width:220px;
-      background:rgba(255,252,245,.96);
-      border:1px solid rgba(180,150,110,.2);
-      border-radius:20px 20px 20px 4px;
-      padding:14px 16px;
-      font-size:.82rem;
-      line-height:1.6;
-      color:var(--text);
-      box-shadow:0 16px 40px rgba(42,31,24,.15);
-      z-index:11;
-      animation:bubblePop .4s cubic-bezier(.34,1.56,.64,1);
-      backdrop-filter:blur(8px);
-    }
-    @keyframes bubblePop{
-      from{opacity:0;transform:scale(.8) translateY(10px)}
-      to{opacity:1;transform:scale(1) translateY(0)}
-    }
+/* Scrollable content */
+.content-area{
+  flex:1;overflow-y:auto;padding:12px 20px 0;
+  position:relative;z-index:1;
+}
+.content-area::-webkit-scrollbar{width:3px}
+.content-area::-webkit-scrollbar-track{background:transparent}
+.content-area::-webkit-scrollbar-thumb{background:rgba(160,100,255,.25);border-radius:2px}
 
-    /* ── FRAME OVERLAY (room depth vignette) ─────────── */
-    .room-vignette{
-      position:absolute;inset:0;
-      background:radial-gradient(ellipse at 50% 40%,transparent 40%,rgba(20,30,26,.45) 100%);
-      pointer-events:none;
-      z-index:20;
-    }
-    .room-frame{
-      position:absolute;inset:0;
-      border:22px solid rgba(20,16,12,.5);
-      border-radius:0;
-      pointer-events:none;
-      z-index:21;
-      box-shadow:inset 0 0 60px rgba(0,0,0,.3);
-    }
+/* Profile form */
+.intro-card{
+  font-size:.8rem;color:#b090d8;line-height:1.65;
+  margin-bottom:14px;
+  padding:12px 14px;
+  background:var(--card-bg);
+  border:1px solid var(--card-border);
+  border-radius:12px;
+}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fg-full{grid-column:1/-1}
+.flabel{display:block;font-size:.7rem;font-weight:800;color:#a080d0;letter-spacing:.05em;margin-bottom:5px}
+.finput,.ftextarea{
+  width:100%;
+  font:400 .8rem 'Nunito',sans-serif;
+  background:rgba(255,255,255,.04);
+  border:1.5px solid rgba(160,100,255,.18);
+  border-radius:10px;padding:10px 12px;
+  color:var(--text-light);transition:border-color .2s,background .2s;outline:none;
+}
+.finput::placeholder,.ftextarea::placeholder{color:rgba(200,180,255,.3)}
+.finput:focus,.ftextarea:focus{border-color:var(--accent);background:rgba(160,100,255,.06)}
+.ftextarea{resize:vertical;min-height:64px}
+.btn-save{
+  width:100%;padding:13px;
+  background:linear-gradient(135deg,#6020c0,#a050f0,#c060d8);
+  color:#fff;border:none;border-radius:12px;
+  font:800 .88rem 'Nunito',sans-serif;
+  cursor:pointer;margin-top:4px;
+  transition:opacity .2s,transform .1s;
+  letter-spacing:.03em;
+  box-shadow:0 8px 24px rgba(160,60,255,.3);
+}
+.btn-save:hover{opacity:.9}
+.btn-save:active{transform:scale(.97)}
 
-    /* ── TIME / GREETING BAR ─────────────────────────── */
-    .room-header{
-      position:absolute;
-      top:18px;left:18px;right:18px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      z-index:22;
-    }
-    .room-badge{
-      background:rgba(20,30,26,.7);
-      color:#e8d8c0;
-      padding:8px 16px;
-      border-radius:999px;
-      font-size:.78rem;
-      font-weight:600;
-      letter-spacing:.05em;
-      backdrop-filter:blur(12px);
-      border:1px solid rgba(255,255,255,.08);
-    }
-    .time-display{
-      background:rgba(20,30,26,.7);
-      color:#e8d8c0;
-      padding:8px 16px;
-      border-radius:999px;
-      font-size:.82rem;
-      font-family:'Playfair Display',serif;
-      backdrop-filter:blur(12px);
-      border:1px solid rgba(255,255,255,.08);
-    }
+/* Chat */
+.chat-log{display:flex;flex-direction:column;gap:10px;padding-bottom:12px}
+.bbl{
+  max-width:87%;padding:11px 14px;
+  border-radius:14px;font-size:.8rem;line-height:1.65;white-space:pre-wrap;
+}
+.bbl-sara{
+  background:var(--card-bg);border:1px solid var(--card-border);
+  border-radius:4px 14px 14px 14px;align-self:flex-start;
+  color:var(--text-light);
+}
+.bbl-user{
+  background:linear-gradient(135deg,#6020c0,#a050f0);
+  color:#fff;border-radius:14px 4px 14px 14px;align-self:flex-end;
+}
 
-    /* ── RIGHT PANEL ─────────────────────────────────── */
-    .panel-right{
-      display:flex;
-      flex-direction:column;
-      background:linear-gradient(160deg,#f8f2e8 0%,#f0e8d8 100%);
-      border-left:1px solid rgba(180,150,110,.2);
-      overflow:hidden;
-    }
+/* Side info cards */
+.side-cards{display:grid;gap:8px;padding-bottom:12px}
+.scard{
+  background:var(--card-bg);border:1px solid var(--card-border);
+  border-radius:12px;padding:11px 13px;
+}
+.scard-title{font-size:.67rem;font-weight:800;color:#a080d0;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
+.scard-body{font-size:.77rem;color:var(--text-mute);line-height:1.5}
 
-    .panel-head{
-      padding:20px 22px 14px;
-      border-bottom:1px solid rgba(180,150,110,.15);
-      background:rgba(255,252,246,.8);
-      backdrop-filter:blur(8px);
-    }
-    .panel-title{
-      font-family:'Playfair Display',serif;
-      font-size:1.4rem;
-      color:var(--sage-dk);
-      line-height:1;
-    }
-    .panel-sub{
-      font-size:.78rem;
-      color:var(--text-mute);
-      margin-top:4px;
-    }
+/* Tool row */
+.tool-row{
+  display:flex;gap:7px;flex-wrap:wrap;
+  padding:10px 20px;
+  border-top:1px solid rgba(160,100,255,.08);
+  position:relative;z-index:1;
+}
+.tool-btn{
+  padding:6px 13px;border-radius:999px;
+  border:1px solid rgba(160,100,255,.25);
+  background:rgba(160,100,255,.06);
+  color:#c090ff;
+  font:700 .72rem 'Nunito',sans-serif;
+  cursor:pointer;transition:all .2s;
+}
+.tool-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
 
-    /* ── STATUS PILLS ─────────────────────────────────── */
-    .status-row{
-      display:flex;gap:8px;
-      padding:10px 22px;
-      flex-wrap:wrap;
-      border-bottom:1px solid rgba(180,150,110,.1);
-    }
-    .status-pill{
-      padding:5px 12px;
-      border-radius:999px;
-      font-size:.72rem;
-      font-weight:600;
-      letter-spacing:.04em;
-    }
-    .pill-green{background:rgba(61,107,94,.12);color:var(--sage-dk)}
-    .pill-rose{background:rgba(180,80,100,.12);color:var(--blush-dk)}
-    .pill-gold{background:rgba(180,140,50,.12);color:#8a6010}
+/* Compose bar */
+.compose{
+  padding:10px 20px 14px;
+  border-top:1px solid rgba(160,100,255,.1);
+  background:rgba(255,255,255,.02);
+  display:grid;grid-template-columns:1fr auto auto auto;
+  gap:8px;align-items:end;
+  position:relative;z-index:1;
+}
+.c-input{
+  font:400 .82rem 'Nunito',sans-serif;
+  background:rgba(255,255,255,.05);
+  border:1.5px solid rgba(160,100,255,.18);
+  border-radius:12px;padding:10px 14px;
+  resize:none;min-height:42px;max-height:110px;
+  outline:none;color:var(--text-light);
+  transition:border-color .2s;
+}
+.c-input::placeholder{color:rgba(200,180,255,.3)}
+.c-input:focus{border-color:var(--accent)}
+.c-btn{
+  width:42px;height:42px;border-radius:11px;
+  display:grid;place-items:center;font-size:1rem;
+  cursor:pointer;transition:all .2s;border:none;
+}
+.c-btn-ghost{background:rgba(255,255,255,.05);color:#a090c0;border:1.5px solid rgba(160,100,255,.18)}
+.c-btn-ghost:hover{background:rgba(160,100,255,.15);color:#d0b0ff}
+.c-btn-ghost.active-listen{background:rgba(255,120,50,.2);border-color:rgba(255,120,50,.4);color:#ff9060;animation:listenPulse 1s ease-in-out infinite}
+@keyframes listenPulse{50%{background:rgba(255,120,50,.35)}}
+.c-btn-send{background:linear-gradient(135deg,#7030d0,#c060e0);color:#fff}
+.c-btn-send:hover{opacity:.88;transform:scale(1.05)}
+.c-btn-send:active{transform:scale(.93)}
 
-    /* ── CHECK-IN BANNER ─────────────────────────────── */
-    .checkin-banner{
-      margin:12px 22px 0;
-      background:linear-gradient(135deg,var(--sage-dk),var(--sage));
-      border-radius:16px;
-      padding:14px 16px;
-      color:#fff;
-    }
-    .checkin-banner strong{font-size:.85rem;letter-spacing:.03em}
-    .checkin-text{font-size:.78rem;margin-top:4px;opacity:.9;line-height:1.5}
-    .mood-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-    .mood-btn{
-      padding:6px 14px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.3);
-      background:rgba(255,255,255,.15);
-      color:#fff;
-      font:600 .75rem 'DM Sans',sans-serif;
-      cursor:pointer;
-      transition:all .2s;
-    }
-    .mood-btn:hover{background:rgba(255,255,255,.28)}
-
-    /* ── PROFILE / CHAT AREA ─────────────────────────── */
-    .content-area{
-      flex:1;
-      overflow-y:auto;
-      padding:12px 22px 0;
-    }
-    .content-area::-webkit-scrollbar{width:4px}
-    .content-area::-webkit-scrollbar-track{background:transparent}
-    .content-area::-webkit-scrollbar-thumb{background:rgba(180,150,110,.3);border-radius:2px}
-
-    /* Profile form */
-    .profile-intro{
-      font-size:.82rem;
-      color:var(--text-mute);
-      line-height:1.6;
-      margin-bottom:14px;
-      padding:12px 14px;
-      background:rgba(255,252,246,.8);
-      border-radius:12px;
-      border:1px solid rgba(180,150,110,.15);
-    }
-    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .form-full{grid-column:1/-1}
-    .form-label{
-      display:block;
-      font-size:.72rem;
-      font-weight:600;
-      color:var(--sage-dk);
-      letter-spacing:.04em;
-      margin-bottom:5px;
-    }
-    .form-input,.form-textarea{
-      width:100%;
-      font:400 .82rem 'DM Sans',sans-serif;
-      background:#fff;
-      border:1.5px solid rgba(180,150,110,.2);
-      border-radius:10px;
-      padding:10px 12px;
-      color:var(--text);
-      transition:border-color .2s;
-      outline:none;
-    }
-    .form-input:focus,.form-textarea:focus{border-color:var(--sage);box-shadow:0 0 0 3px rgba(61,107,94,.08)}
-    .form-textarea{resize:vertical;min-height:68px}
-    .btn-primary{
-      width:100%;
-      padding:12px;
-      background:linear-gradient(135deg,var(--sage-dk),var(--sage));
-      color:#fff;
-      border:none;
-      border-radius:12px;
-      font:700 .88rem 'DM Sans',sans-serif;
-      cursor:pointer;
-      transition:opacity .2s,transform .1s;
-      margin-top:4px;
-    }
-    .btn-primary:hover{opacity:.9}
-    .btn-primary:active{transform:scale(.98)}
-
-    /* Chat */
-    .chat-log{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      padding-bottom:12px;
-    }
-    .bubble{
-      max-width:85%;
-      padding:12px 14px;
-      border-radius:16px;
-      font-size:.82rem;
-      line-height:1.6;
-      white-space:pre-wrap;
-    }
-    .bubble-sara{
-      background:#fff;
-      border:1px solid rgba(180,150,110,.15);
-      border-radius:4px 16px 16px 16px;
-      align-self:flex-start;
-      box-shadow:0 4px 12px rgba(42,31,24,.06);
-    }
-    .bubble-user{
-      background:linear-gradient(135deg,var(--sage-dk),var(--sage));
-      color:#fff;
-      border-radius:16px 4px 16px 16px;
-      align-self:flex-end;
-    }
-
-    /* Quick tools */
-    .tool-row{
-      display:flex;gap:8px;flex-wrap:wrap;
-      padding:10px 22px;
-      border-top:1px solid rgba(180,150,110,.1);
-      background:rgba(255,252,246,.8);
-    }
-    .tool-btn{
-      padding:7px 14px;
-      border-radius:999px;
-      border:1.5px solid rgba(61,107,94,.25);
-      background:#fff;
-      color:var(--sage-dk);
-      font:600 .75rem 'DM Sans',sans-serif;
-      cursor:pointer;
-      transition:all .2s;
-    }
-    .tool-btn:hover{background:var(--sage-dk);color:#fff;border-color:var(--sage-dk)}
-
-    /* Compose */
-    .compose-area{
-      padding:12px 22px 16px;
-      border-top:1px solid rgba(180,150,110,.12);
-      background:rgba(255,252,246,.9);
-      display:grid;
-      grid-template-columns:1fr auto auto;
-      gap:8px;
-      align-items:end;
-    }
-    .compose-input{
-      font:400 .84rem 'DM Sans',sans-serif;
-      background:#fff;
-      border:1.5px solid rgba(180,150,110,.2);
-      border-radius:12px;
-      padding:10px 14px;
-      resize:none;
-      min-height:44px;
-      max-height:120px;
-      outline:none;
-      color:var(--text);
-      transition:border-color .2s;
-    }
-    .compose-input:focus{border-color:var(--sage)}
-    .btn-icon{
-      width:44px;height:44px;
-      border-radius:12px;
-      border:1.5px solid rgba(180,150,110,.2);
-      background:#fff;
-      cursor:pointer;
-      display:grid;place-items:center;
-      font-size:1.1rem;
-      transition:all .2s;
-    }
-    .btn-icon:hover{background:var(--sage-dk);border-color:var(--sage-dk);color:#fff}
-    .btn-send{
-      width:44px;height:44px;
-      border-radius:12px;
-      border:none;
-      background:linear-gradient(135deg,var(--sage-dk),var(--sage));
-      color:#fff;
-      cursor:pointer;
-      display:grid;place-items:center;
-      font-size:1.1rem;
-      transition:opacity .2s,transform .1s;
-    }
-    .btn-send:hover{opacity:.88}
-    .btn-send:active{transform:scale(.94)}
-
-    /* Sidebar cards */
-    .side-cards{
-      display:grid;
-      gap:8px;
-      padding-bottom:12px;
-    }
-    .side-card{
-      background:#fff;
-      border:1px solid rgba(180,150,110,.15);
-      border-radius:14px;
-      padding:12px 14px;
-      box-shadow:0 2px 8px rgba(42,31,24,.04);
-    }
-    .side-card-title{
-      font-size:.7rem;
-      font-weight:700;
-      color:var(--sage-dk);
-      letter-spacing:.06em;
-      text-transform:uppercase;
-      margin-bottom:6px;
-    }
-    .side-card-body{font-size:.78rem;color:var(--text-mute);line-height:1.5}
-
-    /* Voice line */
-    .voice-line{
-      text-align:center;
-      font-size:.72rem;
-      color:var(--text-mute);
-      padding:8px;
-    }
-
-    /* Utils */
-    .hide{display:none!important}
-
-    /* Animations for room elements */
-    @keyframes sway{
-      0%,100%{transform:rotate(-2deg)}
-      50%{transform:rotate(2deg)}
-    }
-
-    /* Responsive */
-    @media(max-width:900px){
-      .app{grid-template-columns:1fr;height:auto;overflow:auto}
-      html,body{overflow:auto;height:auto}
-      .room-wrap{height:60vw;min-height:360px}
-      .panel-right{height:auto}
-    }
-  </style>
+.foot{text-align:center;font-size:.68rem;color:rgba(160,140,200,.4);padding:7px;position:relative;z-index:1}
+.hide{display:none!important}
+</style>
 </head>
 <body>
 <div class="app">
 
-  <!-- ══ LEFT: 3D ROOM ══ -->
-  <div class="room-wrap">
-    <div class="scene">
-      <div class="room-box">
+<!-- ════════════ LEFT: 3D ROOM ════════════ -->
+<div class="room-wrap">
+ <div class="scene">
+  <div class="room-box">
 
-        <!-- Walls -->
-        <div class="wall wall-back"></div>
-        <div class="wall wall-left"></div>
-        <div class="wall wall-right"></div>
-        <div class="floor"></div>
+   <!-- Walls & floor -->
+   <div class="wall-back"></div>
+   <div class="wall-left"></div>
+   <div class="wall-right"></div>
+   <div class="ceiling"></div>
+   <div class="floor"></div>
 
-        <!-- Window -->
-        <div class="window-frame" style="position:absolute;top:7%;left:50%;transform:translateX(-50%);width:26%;z-index:2">
-          <div class="window-sky">
-            <div class="hill hill1"></div>
-            <div class="hill hill2"></div>
-            <div class="hill hill3"></div>
-            <div class="tree tree1"><div class="tree-trunk"></div><div class="tree-top"></div></div>
-            <div class="tree tree2"><div class="tree-trunk"></div><div class="tree-top"></div></div>
-            <div class="tree tree3"><div class="tree-trunk"></div><div class="tree-top"></div></div>
-            <div class="cloud c1"></div>
-            <div class="cloud c2"></div>
-            <div class="cloud c3"></div>
-          </div>
-          <div class="win-cross-h"></div>
-          <div class="win-cross-v"></div>
-          <div class="curtain curtain-l"></div>
-          <div class="curtain curtain-r"></div>
-          <div class="valance"></div>
-        </div>
+   <!-- Fairy lights string -->
+   <div class="lights-string">
+    <svg viewBox="0 0 800 32" preserveAspectRatio="none">
+     <path d="M0,8 Q80,20 160,8 Q240,0 320,8 Q400,20 480,8 Q560,0 640,8 Q720,20 800,8" fill="none" stroke="rgba(200,160,100,.5)" stroke-width="1.5"/>
+     <!-- bulbs -->
+     <circle class="fairy-light fl1"  cx="80"  cy="20" r="5" fill="#ff6040"/>
+     <circle class="fairy-light fl2"  cx="160" cy="8"  r="5" fill="#40c0ff"/>
+     <circle class="fairy-light fl3"  cx="240" cy="20" r="5" fill="#ff60c0"/>
+     <circle class="fairy-light fl4"  cx="320" cy="8"  r="5" fill="#60ff80"/>
+     <circle class="fairy-light fl5"  cx="400" cy="20" r="5" fill="#ffc040"/>
+     <circle class="fairy-light fl6"  cx="480" cy="8"  r="5" fill="#c060ff"/>
+     <circle class="fairy-light fl7"  cx="560" cy="20" r="5" fill="#ff6040"/>
+     <circle class="fairy-light fl8"  cx="640" cy="8"  r="5" fill="#40c0ff"/>
+     <circle class="fairy-light fl9"  cx="720" cy="20" r="5" fill="#ff60c0"/>
+     <circle class="fairy-light fl10" cx="780" cy="8"  r="5" fill="#60ff80"/>
+    </svg>
+   </div>
 
-        <!-- Bookshelf -->
-        <div class="bookshelf">
-          <div class="shelf-unit">
-            <div class="shelf-row">
-              <div class="book bk1"></div>
-              <div class="book bk2"></div>
-              <div class="book bk3"></div>
-              <div class="book bk4"></div>
-              <div class="book bk5"></div>
-              <div class="shelf-deco"></div>
-            </div>
-            <div class="shelf-row">
-              <div class="shelf-plant"></div>
-              <div class="book bk6"></div>
-              <div class="book bk7"></div>
-              <div class="book bk8"></div>
-              <div class="book bk9"></div>
-              <div class="book bk10"></div>
-            </div>
-            <div class="shelf-row">
-              <div class="book bk11"></div>
-              <div class="book bk12"></div>
-              <div class="book bk13"></div>
-              <div class="book bk14"></div>
-            </div>
-          </div>
-        </div>
+   <!-- Picture frame -->
+   <div class="picture-frame"></div>
+   <!-- Wall clock -->
+   <div class="wall-clock" id="wallClockEl">12:00</div>
 
-        <!-- Rug -->
-        <div class="rug"></div>
-
-        <!-- Desk -->
-        <div class="desk-wrap">
-          <!-- Lamp (behind desk items) -->
-          <div class="lamp-wrap" style="position:absolute;left:8px;bottom:18px;z-index:5">
-            <div class="lamp-base"></div>
-            <div class="lamp-arm1"></div>
-            <div class="lamp-arm2" style="margin-left:4px"></div>
-            <div class="lamp-head"></div>
-            <div class="lamp-glow"></div>
-          </div>
-          <!-- Desk items -->
-          <div class="desk-items">
-            <div style="width:50px"></div><!-- lamp spacer -->
-            <div class="laptop-wrap">
-              <div class="laptop-screen"></div>
-              <div class="laptop-base"></div>
-            </div>
-            <div class="mug-wrap">
-              <div class="steam">
-                <div class="steam-line"></div>
-                <div class="steam-line"></div>
-                <div class="steam-line"></div>
-              </div>
-              <div class="mug"><div class="mug-handle"></div></div>
-            </div>
-            <div class="desk-plant">
-              <div style="position:relative">
-                <div class="plant-leaf leaf1"></div>
-                <div class="plant-leaf leaf2"></div>
-                <div class="plant-leaf leaf3"></div>
-                <div class="plant-leaf leaf4"></div>
-                <div class="plant-stem"></div>
-              </div>
-              <div class="pot"></div>
-            </div>
-          </div>
-          <div class="desk-surface"></div>
-          <div class="desk-body"></div>
-          <div class="desk-legs">
-            <div class="desk-leg"></div>
-            <div class="desk-leg"></div>
-          </div>
-        </div>
-
-        <!-- Sara Avatar -->
-        <div class="avatar-wrap">
-          <div class="avatar-shadow"></div>
-          <svg class="avatar-svg" viewBox="0 0 160 320" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Hair back -->
-            <ellipse cx="80" cy="68" rx="46" ry="52" fill="#2d1e14"/>
-            <!-- Body dress -->
-            <path d="M42 148 Q40 220 38 280 Q60 290 80 290 Q100 290 122 280 Q120 220 118 148 Q100 160 80 160 Q60 160 42 148Z" fill="#c05878"/>
-            <path d="M42 148 Q40 220 38 280 Q60 290 80 290 Q100 290 122 280 Q120 220 118 148 Q100 160 80 160 Q60 160 42 148Z" fill="url(#dressGrad)"/>
-            <!-- Dress highlight -->
-            <path d="M55 152 Q54 180 53 210" stroke="rgba(255,255,255,.15)" stroke-width="8" stroke-linecap="round"/>
-            <!-- Skirt flare -->
-            <path d="M36 240 Q30 280 28 300 Q54 310 80 310 Q106 310 132 300 Q130 280 124 240Z" fill="#a04068"/>
-            <path d="M36 240 Q30 280 28 300 Q54 310 80 310 Q106 310 132 300 Q130 280 124 240Z" fill="url(#skirtGrad)"/>
-            <!-- Left arm -->
-            <path d="M42 148 Q22 180 20 210 Q26 212 34 208 Q38 180 52 158Z" fill="#ffd0b0"/>
-            <!-- Right arm (waving) -->
-            <path d="M118 148 Q142 170 150 195 Q144 200 138 196 Q130 174 108 158Z" fill="#ffd0b0" style="transform-origin:118px 158px;animation:waveArm 3s ease-in-out infinite"/>
-            <!-- Hand right -->
-            <ellipse cx="144" cy="198" rx="9" ry="7" fill="#ffd0b0" style="transform-origin:118px 158px;animation:waveArm 3s ease-in-out infinite"/>
-            <!-- Hand left -->
-            <ellipse cx="22" cy="210" rx="8" ry="7" fill="#ffd0b0"/>
-            <!-- Collar -->
-            <path d="M62 148 Q80 156 98 148 L94 140 Q80 148 66 140Z" fill="#e07898"/>
-            <!-- Neck -->
-            <rect x="73" y="108" width="14" height="22" rx="7" fill="#ffd0b0"/>
-            <!-- Head -->
-            <ellipse cx="80" cy="84" rx="40" ry="44" fill="#ffd0b0"/>
-            <!-- Hair front -->
-            <path d="M40 72 Q40 36 80 30 Q120 36 120 72 Q110 54 80 52 Q50 54 40 72Z" fill="#2d1e14"/>
-            <!-- Hair side left -->
-            <path d="M40 72 Q34 90 36 112 Q42 106 44 90 Q42 80 40 72Z" fill="#2d1e14"/>
-            <!-- Hair side right -->
-            <path d="M120 72 Q126 90 124 112 Q118 106 116 90 Q118 80 120 72Z" fill="#2d1e14"/>
-            <!-- Hair bun -->
-            <circle cx="80" cy="34" r="14" fill="#2d1e14"/>
-            <circle cx="80" cy="34" r="10" fill="#3d2820"/>
-            <!-- Eyes -->
-            <ellipse cx="64" cy="88" rx="7" ry="7.5" fill="#fff"/>
-            <ellipse cx="96" cy="88" rx="7" ry="7.5" fill="#fff"/>
-            <circle cx="65" cy="89" r="4.5" fill="#2d1e14"/>
-            <circle cx="97" cy="89" r="4.5" fill="#2d1e14"/>
-            <!-- Eye shine -->
-            <circle cx="67" cy="87" r="1.5" fill="#fff"/>
-            <circle cx="99" cy="87" r="1.5" fill="#fff"/>
-            <!-- Eyelashes -->
-            <path d="M57 83 Q60 79 64 83" stroke="#2d1e14" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-            <path d="M89 83 Q93 79 97 83" stroke="#2d1e14" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-            <!-- Brows -->
-            <path d="M56 79 Q64 75 72 78" stroke="#4d2e1e" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-            <path d="M88 78 Q96 75 104 79" stroke="#4d2e1e" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-            <!-- Nose -->
-            <path d="M77 100 Q80 106 83 100" stroke="#d4a080" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-            <!-- Smile -->
-            <path d="M68 112 Q80 122 92 112" stroke="#c07858" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-            <!-- Cheek blush -->
-            <ellipse cx="55" cy="102" rx="10" ry="6" fill="rgba(220,120,120,.25)"/>
-            <ellipse cx="105" cy="102" rx="10" ry="6" fill="rgba(220,120,120,.25)"/>
-            <!-- Earrings -->
-            <circle cx="40" cy="98" r="4" fill="#d4a843"/>
-            <circle cx="120" cy="98" r="4" fill="#d4a843"/>
-            <!-- Legs -->
-            <rect x="64" y="296" width="18" height="60" rx="9" fill="#ffd0b0"/>
-            <rect x="84" y="296" width="18" height="60" rx="9" fill="#ffd0b0"/>
-            <!-- Shoes -->
-            <ellipse cx="73" cy="354" rx="13" ry="7" fill="#2d1e14"/>
-            <ellipse cx="93" cy="354" rx="13" ry="7" fill="#2d1e14"/>
-            <!-- Dress bow -->
-            <path d="M70 148 Q80 142 90 148" stroke="#e898b0" stroke-width="3" stroke-linecap="round" fill="none"/>
-            <circle cx="80" cy="146" r="3" fill="#e898b0"/>
-            <defs>
-              <linearGradient id="dressGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="rgba(255,255,255,.1)"/>
-                <stop offset="100%" stop-color="rgba(0,0,0,.05)"/>
-              </linearGradient>
-              <linearGradient id="skirtGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="rgba(255,255,255,.05)"/>
-                <stop offset="100%" stop-color="rgba(0,0,0,.15)"/>
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-
-        <!-- Speech bubble -->
-        <div class="speech-bubble" id="speechBubble">Hi friend, how is your health and how is today going? ✨</div>
-
-      </div><!-- room-box -->
-    </div><!-- scene -->
-
-    <!-- Room overlays -->
-    <div class="room-vignette"></div>
-    <div class="room-frame"></div>
-
-    <!-- Header bar -->
-    <div class="room-header">
-      <div class="room-badge">🌿 Sara's Room</div>
-      <div class="time-display" id="clockDisplay">—</div>
+   <!-- Window -->
+   <div class="window-outer">
+    <div class="curtain-wrap">
+     <div class="valance"></div>
+     <div class="curtain-l"></div>
+     <div class="curtain-r"></div>
     </div>
-
-  </div><!-- room-wrap -->
-
-  <!-- ══ RIGHT: PANEL ══ -->
-  <div class="panel-right">
-
-    <div class="panel-head">
-      <div class="panel-title">Sara</div>
-      <div class="panel-sub" id="statusSub">Waiting to know you</div>
+    <div class="window-frame">
+     <div class="win-sky">
+      <div class="sun"></div>
+      <div class="cloud c1"><div class="cloud-body"><div class="cloud-b1"></div></div></div>
+      <div class="cloud c2"><div class="cloud-body"><div class="cloud-b1"></div></div></div>
+      <div class="cloud c3"><div class="cloud-body"><div class="cloud-b1"></div></div></div>
+      <div class="hill h1"></div><div class="hill h2"></div><div class="hill h3"></div>
+      <div class="win-tree" style="left:12%"><div class="win-tree-trunk"></div><div class="win-tree-top"></div></div>
+      <div class="win-tree" style="left:28%;bottom:28%"><div class="win-tree-trunk"></div><div class="win-tree-top"></div></div>
+      <div class="win-tree" style="right:10%"><div class="win-tree-trunk"></div><div class="win-tree-top"></div></div>
+     </div>
+     <div class="win-h"></div><div class="win-v"></div>
     </div>
-
-    <div class="status-row">
-      <div class="status-pill pill-green" id="modePill">Room mode</div>
-      <div class="status-pill pill-rose" id="moodPill">Mood: —</div>
-      <div class="status-pill pill-gold" id="healthPill">Health: —</div>
+    <div class="win-sill"></div>
+    <div class="flower-box">
+     <div class="flower f1">🌸</div>
+     <div class="flower f2">🌼</div>
+     <div class="flower f3">🌺</div>
+     <div class="flower f4">🌷</div>
+     <div class="flower f5">🌻</div>
     </div>
+   </div>
 
-    <div class="checkin-banner">
-      <strong>Daily check-in</strong>
-      <div class="checkin-text" id="dailyPromptText">Sara will ask about sleep, energy, food, water, stress, and what is going on today.</div>
-      <div class="mood-row">
-        <button class="mood-btn" data-checkin="I feel energetic and clear today.">💪 Strong</button>
-        <button class="mood-btn" data-checkin="I feel okay but a little stressed and tired today.">😐 Mixed</button>
-        <button class="mood-btn" data-checkin="I feel low on energy and I want gentle support today.">🫶 Need care</button>
+   <!-- Bookshelf -->
+   <div class="bookshelf">
+    <div class="shelf-unit">
+     <div class="shelf-row">
+      <div class="bk b01"></div><div class="bk b02"></div><div class="bk b03"></div>
+      <div class="bk b04"></div><div class="bk b05"></div><div class="bk b06"></div>
+     </div>
+     <div class="shelf-row">
+      <div class="mini-globe"></div>
+      <div class="bk b07"></div><div class="bk b08"></div><div class="bk b09"></div>
+      <div class="bk b10"></div><div class="bk b11"></div>
+     </div>
+     <div class="shelf-row">
+      <div class="shelf-plant-sm"></div>
+      <div class="bk b12"></div><div class="bk b13"></div>
+      <div class="bk b14"></div><div class="bk b15"></div>
+     </div>
+    </div>
+   </div>
+
+   <!-- Rug -->
+   <div class="rug"></div>
+
+   <!-- Desk -->
+   <div class="desk-wrap">
+    <div class="lamp">
+     <div class="lamp-base"></div>
+     <div class="lamp-pole"></div>
+     <div class="lamp-arm"></div>
+     <div class="lamp-shade"><div class="lamp-glow"></div></div>
+    </div>
+    <div class="desk-items">
+     <div style="width:48px"></div>
+     <div class="laptop">
+      <div class="laptop-screen"></div>
+      <div class="laptop-hinge"></div>
+      <div class="laptop-base"></div>
+     </div>
+     <div class="notebook"></div>
+     <div class="mug-wrap">
+      <div class="steam">
+       <div class="steam-p"></div><div class="steam-p"></div><div class="steam-p"></div>
       </div>
-    </div>
-
-    <!-- Scrollable content -->
-    <div class="content-area" id="contentArea">
-
-      <!-- Profile form -->
-      <div id="profileSection" style="padding-top:12px">
-        <div class="profile-intro">Tell Sara about yourself first. She will speak, check on your health, and support your day more personally.</div>
-        <form id="profileForm" class="form-grid">
-          <div>
-            <label class="form-label" for="name">Your name</label>
-            <input class="form-input" id="name" name="name" required placeholder="What should Sara call you?">
-          </div>
-          <div>
-            <label class="form-label" for="city">City / Country</label>
-            <input class="form-input" id="city" name="city" placeholder="Where are you from?">
-          </div>
-          <div>
-            <label class="form-label" for="age">Age / Life stage</label>
-            <input class="form-input" id="age" name="age" placeholder="Student, working…">
-          </div>
-          <div>
-            <label class="form-label" for="mood">Current mood</label>
-            <input class="form-input" id="mood" name="mood" placeholder="Calm, tired, excited…">
-          </div>
-          <div>
-            <label class="form-label" for="health">Health & energy</label>
-            <input class="form-input" id="health" name="health" placeholder="Sleep, body, energy…">
-          </div>
-          <div>
-            <label class="form-label" for="today">What's going on today</label>
-            <input class="form-input" id="today" name="today" placeholder="Class, work, rest…">
-          </div>
-          <div class="form-full">
-            <label class="form-label" for="interests">Interests</label>
-            <textarea class="form-textarea" id="interests" name="interests" placeholder="Coding, music, art, fitness, study…"></textarea>
-          </div>
-          <div class="form-full">
-            <label class="form-label" for="goals">Goals</label>
-            <textarea class="form-textarea" id="goals" name="goals" placeholder="What do you want Sara to help you with?"></textarea>
-          </div>
-          <div class="form-full">
-            <label class="form-label" for="routine">Routine</label>
-            <textarea class="form-textarea" id="routine" name="routine" placeholder="How your day usually goes."></textarea>
-          </div>
-          <div class="form-full">
-            <button class="btn-primary" type="submit">Save profile & wake Sara ✨</button>
-          </div>
-        </form>
+      <div class="mug"><div class="mug-liquid"></div><div class="mug-handle"></div></div>
+     </div>
+     <div class="deskplant">
+      <div style="position:relative">
+       <div class="dl dl1"></div><div class="dl dl2"></div>
+       <div class="dl dl3"></div><div class="dl dl4"></div>
+       <div class="dstem"></div>
       </div>
-
-      <!-- Chat section -->
-      <div id="chatSection" class="hide" style="padding-top:12px">
-        <div class="side-cards">
-          <div class="side-card">
-            <div class="side-card-title">🎯 Today's focus</div>
-            <div class="side-card-body" id="focusSummary">Sara will summarize your day here.</div>
-          </div>
-          <div class="side-card">
-            <div class="side-card-title">💚 Health note</div>
-            <div class="side-card-body" id="healthSummary">Sara will remind you gently about your health.</div>
-          </div>
-          <div class="side-card">
-            <div class="side-card-title">🎙️ Voice</div>
-            <div class="side-card-body" id="voiceStatus">Speech ready when supported by your browser.</div>
-          </div>
-        </div>
-        <div class="chat-log" id="chatLog"></div>
-      </div>
-
-    </div><!-- content-area -->
-
-    <!-- Quick tool buttons (only in chat mode) -->
-    <div class="tool-row hide" id="toolRow">
-      <button class="tool-btn" data-prompt="Check on my health and ask me how today is going.">🩺 Health</button>
-      <button class="tool-btn" data-prompt="Teach me something interesting about the world today.">🌍 Teach</button>
-      <button class="tool-btn" data-prompt="Give me one smart suggestion for today based on my goals.">💡 Suggest</button>
-      <button class="tool-btn" data-prompt="Talk to me like a caring friend.">🤝 Friend</button>
+      <div class="dpot"></div>
+     </div>
     </div>
+    <div class="desk-top"></div>
+    <div class="desk-body"></div>
+    <div class="desk-legs"><div class="desk-leg"></div><div class="desk-leg"></div></div>
+   </div>
 
-    <!-- Compose -->
-    <div class="compose-area" id="composeArea">
-      <textarea class="compose-input" id="message" placeholder="Message Sara…" rows="1"></textarea>
-      <button class="btn-icon" id="listenButton" title="Voice input">🎤</button>
-      <button class="btn-send" id="sendButton" title="Send">➤</button>
+   <!-- SARA AVATAR -->
+   <div class="avatar-wrap">
+    <div class="avatar-shadow"></div>
+    <!--
+      Sara: Beautiful Indian girl, traditional lehenga choli,
+      detailed face, jewelry, long hair with bun + flowers
+    -->
+    <svg class="sara-svg" viewBox="0 0 200 420" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Lehenga gradient - vibrant teal + gold -->
+        <linearGradient id="lehengaG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#00b8a0"/>
+          <stop offset="40%" stop-color="#0090b0"/>
+          <stop offset="100%" stop-color="#006080"/>
+        </linearGradient>
+        <!-- Choli (blouse) gradient - coral -->
+        <linearGradient id="choliG" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#ff7060"/>
+          <stop offset="100%" stop-color="#e04040"/>
+        </linearGradient>
+        <!-- Dupatta gradient -->
+        <linearGradient id="dupattaG" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#ff60a0"/>
+          <stop offset="100%" stop-color="#c030c0"/>
+        </linearGradient>
+        <!-- Skin tone -->
+        <linearGradient id="skinG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#f8c898"/>
+          <stop offset="100%" stop-color="#e8a870"/>
+        </linearGradient>
+        <!-- Hair -->
+        <linearGradient id="hairG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1a0e08"/>
+          <stop offset="100%" stop-color="#0a0604"/>
+        </linearGradient>
+        <!-- Gold jewelry -->
+        <linearGradient id="goldG" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#ffd060"/>
+          <stop offset="100%" stop-color="#e0a020"/>
+        </linearGradient>
+        <!-- Lehenga pattern overlay -->
+        <pattern id="lehengaPat" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+          <circle cx="10" cy="10" r="2" fill="rgba(255,215,0,.25)"/>
+          <circle cx="0" cy="0" r="1" fill="rgba(255,215,0,.15)"/>
+          <circle cx="20" cy="20" r="1" fill="rgba(255,215,0,.15)"/>
+        </pattern>
+        <radialGradient id="blushG" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="rgba(220,100,100,.35)"/>
+          <stop offset="100%" stop-color="transparent"/>
+        </radialGradient>
+      </defs>
+
+      <!-- ═══ LEHENGA (skirt) ═══ -->
+      <!-- Main skirt bell shape -->
+      <path d="M58 200 Q30 260 18 360 Q50 385 100 388 Q150 385 182 360 Q170 260 142 200 Z"
+            fill="url(#lehengaG)"/>
+      <!-- Pattern overlay -->
+      <path d="M58 200 Q30 260 18 360 Q50 385 100 388 Q150 385 182 360 Q170 260 142 200 Z"
+            fill="url(#lehengaPat)" opacity=".9"/>
+      <!-- Skirt border / hem -->
+      <path d="M18 360 Q50 385 100 388 Q150 385 182 360"
+            fill="none" stroke="#ffd060" stroke-width="6"/>
+      <!-- Border floral pattern dots -->
+      <g fill="#ffd060" opacity=".9">
+        <circle cx="30" cy="358" r="3"/><circle cx="55" cy="370" r="2"/>
+        <circle cx="80" cy="375" r="3"/><circle cx="100" cy="378" r="3"/>
+        <circle cx="120" cy="375" r="3"/><circle cx="145" cy="370" r="2"/>
+        <circle cx="170" cy="358" r="3"/>
+      </g>
+      <!-- Gold decorative band near waist -->
+      <path d="M62 202 Q100 210 138 202" fill="none" stroke="#ffd060" stroke-width="4"/>
+      <!-- Pleats suggestion -->
+      <line x1="80"  y1="210" x2="60"  y2="380" stroke="rgba(0,180,160,.3)" stroke-width="1.5"/>
+      <line x1="100" y1="212" x2="100" y2="382" stroke="rgba(0,180,160,.3)" stroke-width="1.5"/>
+      <line x1="120" y1="210" x2="140" y2="380" stroke="rgba(0,180,160,.3)" stroke-width="1.5"/>
+
+      <!-- ═══ DUPATTA (draped scarf) ═══ -->
+      <!-- Over left shoulder flowing down -->
+      <path d="M55 148 Q20 190 16 280 Q10 300 20 320" fill="none"
+            stroke="url(#dupattaG)" stroke-width="14" stroke-linecap="round" opacity=".85"/>
+      <!-- Dupatta over right, floating end -->
+      <path d="M145 148 Q170 180 175 240 Q178 270 168 310"
+            fill="none" stroke="url(#dupattaG)" stroke-width="10" stroke-linecap="round" opacity=".7"
+            style="animation:dupattaWave 4s ease-in-out infinite"/>
+      <!-- Dupatta decorative border -->
+      <path d="M55 148 Q20 190 16 280" fill="none"
+            stroke="#ffd060" stroke-width="2" stroke-dasharray="4,6" opacity=".6"/>
+
+      <!-- ═══ CHOLI (blouse) ═══ -->
+      <path d="M58 148 Q50 165 52 200 Q76 210 100 210 Q124 210 148 200 Q150 165 142 148 Q120 158 100 158 Q80 158 58 148Z"
+            fill="url(#choliG)"/>
+      <!-- Choli neckline gold trim -->
+      <path d="M68 150 Q100 165 132 150" fill="none" stroke="#ffd060" stroke-width="2.5"/>
+      <!-- Choli embroidery dots -->
+      <g fill="#ffd060">
+        <circle cx="80" cy="170" r="2"/><circle cx="100" cy="175" r="2.5"/>
+        <circle cx="120" cy="170" r="2"/>
+      </g>
+
+      <!-- ═══ ARMS ═══ -->
+      <!-- Left arm -->
+      <path d="M58 155 Q35 185 30 218 Q38 222 46 218 Q52 188 68 162Z" fill="url(#skinG)"/>
+      <!-- Right arm (raised/waving) -->
+      <path d="M142 155 Q165 175 172 205 Q164 211 157 206 Q148 178 132 162Z"
+            fill="url(#skinG)"
+            style="transform-origin:142px 162px;animation:saraWave 3.5s ease-in-out infinite"/>
+      <!-- Bangles left -->
+      <ellipse cx="38" cy="212" rx="9" ry="5" fill="none" stroke="#ff4080" stroke-width="3"/>
+      <ellipse cx="38" cy="218" rx="9" ry="5" fill="none" stroke="#ffd060" stroke-width="2"/>
+      <!-- Bangles right -->
+      <ellipse cx="164" cy="200" rx="9" ry="5" fill="none" stroke="#ff4080" stroke-width="3"
+               style="transform-origin:142px 162px;animation:saraWave 3.5s ease-in-out infinite"/>
+      <!-- Hands -->
+      <ellipse cx="33" cy="222" rx="9" ry="8" fill="url(#skinG)"/>
+      <ellipse cx="168" cy="208" rx="9" ry="8" fill="url(#skinG)"
+               style="transform-origin:142px 162px;animation:saraWave 3.5s ease-in-out infinite"/>
+      <!-- Mehendi pattern on hand -->
+      <path d="M28 220 Q33 216 38 220" fill="none" stroke="#d04020" stroke-width="1" opacity=".7"/>
+
+      <!-- ═══ NECK ═══ -->
+      <rect x="88" y="118" width="24" height="24" rx="12" fill="url(#skinG)"/>
+
+      <!-- ═══ NECKLACE ═══ -->
+      <path d="M72 148 Q100 165 128 148" fill="none" stroke="url(#goldG)" stroke-width="3"/>
+      <circle cx="100" cy="163" r="5" fill="url(#goldG)"/>
+      <circle cx="85"  cy="158" r="3" fill="url(#goldG)"/>
+      <circle cx="115" cy="158" r="3" fill="url(#goldG)"/>
+      <!-- necklace pendants -->
+      <ellipse cx="100" cy="169" rx="4" ry="5" fill="#00d0b8"/>
+      <ellipse cx="85"  cy="163" rx="3" ry="4" fill="#ff6080"/>
+      <ellipse cx="115" cy="163" rx="3" ry="4" fill="#ff6080"/>
+
+      <!-- ═══ HEAD ═══ -->
+      <!-- Neck shadow -->
+      <ellipse cx="100" cy="120" rx="14" ry="4" fill="rgba(180,100,60,.15)"/>
+      <!-- Head -->
+      <ellipse cx="100" cy="82" rx="44" ry="48" fill="url(#skinG)"/>
+      <!-- Face shading -->
+      <ellipse cx="100" cy="90" rx="40" ry="38" fill="rgba(240,160,100,.08)"/>
+
+      <!-- ═══ HAIR ═══ -->
+      <!-- Back hair bulk -->
+      <ellipse cx="100" cy="72" rx="46" ry="52" fill="url(#hairG)"/>
+      <!-- Front hair parting -->
+      <path d="M56 68 Q58 36 100 28 Q142 36 144 68 Q132 50 100 48 Q68 50 56 68Z" fill="url(#hairG)"/>
+      <!-- Hair highlight -->
+      <path d="M60 62 Q62 44 80 38" fill="none" stroke="rgba(80,40,20,.4)" stroke-width="3" stroke-linecap="round"/>
+      <!-- Side hair left -->
+      <path d="M56 68 Q48 88 50 118 Q56 112 60 96 Q58 82 56 68Z" fill="url(#hairG)"/>
+      <!-- Side hair right -->
+      <path d="M144 68 Q152 88 150 118 Q144 112 140 96 Q142 82 144 68Z" fill="url(#hairG)"/>
+
+      <!-- ═══ BINDI ═══ -->
+      <circle cx="100" cy="54" r="4" fill="#e03060"/>
+      <circle cx="100" cy="54" r="2" fill="#ff6080"/>
+
+      <!-- ═══ HAIR BUN with flowers ═══ -->
+      <circle cx="100" cy="28" r="18" fill="url(#hairG)"/>
+      <circle cx="100" cy="28" r="13" fill="#2a1810"/>
+      <!-- Bun flowers -->
+      <g fill="#ff6090" opacity=".9">
+        <circle cx="94" cy="14" r="4"/>
+        <circle cx="106" cy="14" r="4"/>
+        <circle cx="88" cy="22" r="3.5"/>
+        <circle cx="112" cy="22" r="3.5"/>
+      </g>
+      <g fill="#ffd060" opacity=".8">
+        <circle cx="100" cy="12" r="3"/>
+        <circle cx="84" cy="28" r="2.5"/>
+        <circle cx="116" cy="28" r="2.5"/>
+      </g>
+      <!-- Maang tikka (hair jewelry) -->
+      <line x1="100" y1="28" x2="100" y2="52" stroke="url(#goldG)" stroke-width="1.5"/>
+      <circle cx="100" cy="52" r="3" fill="url(#goldG)"/>
+      <circle cx="95" cy="30" r="2" fill="url(#goldG)"/>
+      <circle cx="105" cy="30" r="2" fill="url(#goldG)"/>
+
+      <!-- ═══ EARRINGS ═══ -->
+      <!-- Left earring -->
+      <circle cx="56" cy="90" r="5" fill="url(#goldG)"/>
+      <ellipse cx="56" cy="98" rx="4" ry="5" fill="#00d0b8"/>
+      <ellipse cx="56" cy="105" rx="3" ry="4" fill="url(#goldG)"/>
+      <!-- Right earring -->
+      <circle cx="144" cy="90" r="5" fill="url(#goldG)"/>
+      <ellipse cx="144" cy="98" rx="4" ry="5" fill="#00d0b8"/>
+      <ellipse cx="144" cy="105" rx="3" ry="4" fill="url(#goldG)"/>
+
+      <!-- ═══ FACE FEATURES ═══ -->
+      <!-- Eyes - almond shaped -->
+      <ellipse cx="82" cy="85" rx="10" ry="8" fill="#fff"/>
+      <ellipse cx="118" cy="85" rx="10" ry="8" fill="#fff"/>
+      <!-- Irises -->
+      <circle cx="84" cy="86" r="6" fill="#3a1808"/>
+      <circle cx="120" cy="86" r="6" fill="#3a1808"/>
+      <!-- Pupils -->
+      <circle cx="85" cy="87" r="3.5" fill="#0a0404"/>
+      <circle cx="121" cy="87" r="3.5" fill="#0a0404"/>
+      <!-- Eye highlights -->
+      <circle cx="87" cy="84" r="1.8" fill="#fff"/>
+      <circle cx="123" cy="84" r="1.8" fill="#fff"/>
+      <circle cx="83" cy="88" r=".9" fill="rgba(255,255,255,.5)"/>
+      <circle cx="119" cy="88" r=".9" fill="rgba(255,255,255,.5)"/>
+      <!-- Eyeliner (kajal) -->
+      <path d="M72 84 Q82 80 92 84 Q88 90 82 90 Q76 90 72 84Z" fill="rgba(20,10,5,.25)"/>
+      <path d="M108 84 Q118 80 128 84 Q124 90 118 90 Q112 90 108 84Z" fill="rgba(20,10,5,.25)"/>
+      <!-- Eyelashes upper left -->
+      <path d="M72 83 Q74 79 78 81" stroke="#0a0504" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M76 80 Q79 76 82 79" stroke="#0a0504" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M82 79 Q86 75 88 78" stroke="#0a0504" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <!-- Eyelashes upper right -->
+      <path d="M108 80 Q112 76 114 79" stroke="#0a0504" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M114 78 Q118 74 120 78" stroke="#0a0504" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M120 79 Q124 76 126 80" stroke="#0a0504" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <!-- Eyebrows (thick, shaped) -->
+      <path d="M70 76 Q82 70 94 74" stroke="#2a1008" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+      <path d="M106 74 Q118 70 130 76" stroke="#2a1008" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+      <!-- Nose (delicate) -->
+      <path d="M96 98 Q100 108 104 98" stroke="#c87848" stroke-width="2" stroke-linecap="round" fill="none"/>
+      <circle cx="94" cy="100" r="2.5" fill="rgba(180,100,60,.2)"/>
+      <circle cx="106" cy="100" r="2.5" fill="rgba(180,100,60,.2)"/>
+      <!-- Nose ring (nath) - small gold ring on left nostril -->
+      <circle cx="94" cy="101" r="2.5" fill="none" stroke="#ffd060" stroke-width="1.2"/>
+      <!-- Lips -->
+      <path d="M84 116 Q100 122 116 116" fill="#d85060"/>
+      <path d="M84 116 Q100 111 116 116" fill="#e86878"/>
+      <!-- Lip shine -->
+      <path d="M90 114 Q100 111 110 114" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Cheek blush -->
+      <ellipse cx="68" cy="98" rx="13" ry="8" fill="url(#blushG)"/>
+      <ellipse cx="132" cy="98" rx="13" ry="8" fill="url(#blushG)"/>
+
+      <!-- ═══ FEET / SHOES ═══ -->
+      <ellipse cx="84"  cy="392" rx="14" ry="7" fill="#2a1810"/>
+      <ellipse cx="116" cy="392" rx="14" ry="7" fill="#2a1810"/>
+      <!-- Anklets -->
+      <path d="M74 384 Q84 388 94 384" fill="none" stroke="#ffd060" stroke-width="2"/>
+      <path d="M106 384 Q116 388 126 384" fill="none" stroke="#ffd060" stroke-width="2"/>
+
+      <style>
+        @keyframes saraWave{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-18deg)}}
+        @keyframes dupattaWave{0%,100%{transform:rotate(0deg) translateX(0)}50%{transform:rotate(4deg) translateX(4px)}}
+      </style>
+    </svg>
+   </div>
+
+   <!-- Speech Bubble -->
+   <div class="speech" id="speechBubble">
+     Namaste! 🙏 Main Sara hoon — aapki room companion. Aap kaisi hain aaj? ✨
+   </div>
+
+  </div><!-- room-box -->
+ </div><!-- scene -->
+
+ <!-- Overlays -->
+ <div class="room-vignette"></div>
+ <div class="room-border"></div>
+
+ <!-- Room header -->
+ <div class="room-hdr">
+  <div class="rbadge">✨ Sara's Room</div>
+  <div class="rclock" id="clockEl">—</div>
+ </div>
+
+</div><!-- room-wrap -->
+
+<!-- ════════════ RIGHT PANEL ════════════ -->
+<div class="panel">
+
+ <div class="p-head">
+  <div class="p-title">Sara</div>
+  <div class="p-sub" id="statusSub">Waiting to know you · प्रतीक्षा में हूँ</div>
+ </div>
+
+ <div class="p-pills">
+  <div class="spill sp-a" id="modePill">🌿 Room mode</div>
+  <div class="spill sp-b" id="moodPill">😊 Mood: —</div>
+  <div class="spill sp-c" id="healthPill">💚 Health: —</div>
+ </div>
+
+ <div class="ci-banner">
+  <strong>Daily Check-in · दैनिक जाँच</strong>
+  <div class="ci-text" id="dailyText">Sara aapki sleep, energy, food, paani, stress, aur aaj ke din ke baare mein jaanna chahti hai.</div>
+  <div class="mood-row">
+   <button class="mood-btn" data-checkin="I feel energetic and clear today. Aaj main bilkul theek aur energetic hoon.">💪 Strong</button>
+   <button class="mood-btn" data-checkin="I feel okay but a little stressed. Thoda stress hai aaj.">😐 Mixed</button>
+   <button class="mood-btn" data-checkin="I feel low on energy and need gentle support today. Aaj energy kam hai.">🫶 Need care</button>
+  </div>
+ </div>
+
+ <!-- Language toggle -->
+ <div class="lang-row">
+  <span class="lang-label">LANGUAGE:</span>
+  <button class="lang-btn active" id="btnHindi" onclick="setLang('hi')">🇮🇳 Hindi</button>
+  <button class="lang-btn" id="btnEnglish" onclick="setLang('en')">🇬🇧 English</button>
+  <div class="voice-indicator">
+   <div class="voice-dot" id="voiceDot"></div>
+   <span id="voiceLabel">Ready</span>
+  </div>
+ </div>
+
+ <!-- Scrollable area -->
+ <div class="content-area" id="contentArea">
+
+  <!-- Profile section -->
+  <div id="profileSection" style="padding-top:12px">
+   <div class="intro-card">Sara ko pehle apne baare mein batayein — phir woh aapki health check karegi, aaj ke din mein madad karegi, aur dost ki tarah baat karegi. 🌸<br><em style="color:#9988bb">Tell Sara about yourself first — she will check on your health and support your day like a close friend.</em></div>
+   <form id="profileForm" class="fg">
+    <div>
+     <label class="flabel" for="name">Aapka naam / Your name</label>
+     <input class="finput" id="name" name="name" required placeholder="Sara aapko kya bulaye?">
     </div>
+    <div>
+     <label class="flabel" for="city">Shehar / City</label>
+     <input class="finput" id="city" name="city" placeholder="Aap kahan se hain?">
+    </div>
+    <div>
+     <label class="flabel" for="age">Umar / Age stage</label>
+     <input class="finput" id="age" name="age" placeholder="Student, working…">
+    </div>
+    <div>
+     <label class="flabel" for="mood">Abhi kaisa feel ho raha hai</label>
+     <input class="finput" id="mood" name="mood" placeholder="Calm, tired, excited…">
+    </div>
+    <div>
+     <label class="flabel" for="health">Sehat / Health & energy</label>
+     <input class="finput" id="health" name="health" placeholder="Neend, body, energy…">
+    </div>
+    <div>
+     <label class="flabel" for="today">Aaj kya ho raha hai</label>
+     <input class="finput" id="today" name="today" placeholder="Class, kaam, rest…">
+    </div>
+    <div class="fg-full">
+     <label class="flabel" for="interests">Interests / Pasand</label>
+     <textarea class="ftextarea" id="interests" name="interests" placeholder="Coding, music, art, fitness, padhai…"></textarea>
+    </div>
+    <div class="fg-full">
+     <label class="flabel" for="goals">Goals / Lakshya</label>
+     <textarea class="ftextarea" id="goals" name="goals" placeholder="Sara se kya help chahiye?"></textarea>
+    </div>
+    <div class="fg-full">
+     <label class="flabel" for="routine">Routine / Dincharya</label>
+     <textarea class="ftextarea" id="routine" name="routine" placeholder="Aapka din kaise jaata hai?"></textarea>
+    </div>
+    <div class="fg-full">
+     <button class="btn-save" type="submit">Sara ko jaagao ✨ · Wake Sara Up</button>
+    </div>
+   </form>
+  </div>
 
-    <div class="voice-line">Sara's room · local Python backend · browser voice</div>
+  <!-- Chat section -->
+  <div id="chatSection" class="hide" style="padding-top:12px">
+   <div class="side-cards">
+    <div class="scard">
+     <div class="scard-title">🎯 Today's Focus · आज का लक्ष्य</div>
+     <div class="scard-body" id="focusSummary">Sara will guide your day here.</div>
+    </div>
+    <div class="scard">
+     <div class="scard-title">💚 Health Note · स्वास्थ्य</div>
+     <div class="scard-body" id="healthSummary">Sara will check on you here.</div>
+    </div>
+   </div>
+   <div class="chat-log" id="chatLog"></div>
+  </div>
 
-  </div><!-- panel-right -->
+ </div><!-- content-area -->
+
+ <!-- Tool row -->
+ <div class="tool-row hide" id="toolRow">
+  <button class="tool-btn" data-prompt-hi="Meri health check karo aur poochho aaj ka din kaisa chal raha hai." data-prompt-en="Check on my health and ask how today is going.">🩺 Health</button>
+  <button class="tool-btn" data-prompt-hi="Mujhe duniya ke baare mein kuch interesting bataao." data-prompt-en="Teach me something interesting about the world.">🌍 Teach</button>
+  <button class="tool-btn" data-prompt-hi="Aaj ke liye ek smart suggestion do mere goals ke hisaab se." data-prompt-en="Give me one smart suggestion for today based on my goals.">💡 Suggest</button>
+  <button class="tool-btn" data-prompt-hi="Mere saath ek dost ki tarah baat karo." data-prompt-en="Talk to me like a caring friend.">🤝 Friend</button>
+ </div>
+
+ <!-- Compose bar -->
+ <div class="compose">
+  <textarea class="c-input" id="msgInput" placeholder="Sara ko likho… / Message Sara…" rows="1"></textarea>
+  <button class="c-btn c-btn-ghost" id="listenBtn" title="Voice input / बोलकर भेजें">🎤</button>
+  <button class="c-btn c-btn-ghost" id="speakBtn" title="Speak last reply / आखिरी जवाब सुनें">🔊</button>
+  <button class="c-btn c-btn-send" id="sendBtn">➤</button>
+ </div>
+
+ <div class="foot">Sara's Room · Python backend · bilingual voice · browser speech API</div>
+</div><!-- panel -->
 </div><!-- app -->
 
-<style>
-  @keyframes waveArm{
-    0%,100%{transform:rotate(0deg)}
-    50%{transform:rotate(-20deg)}
-  }
-</style>
-
 <script>
-// ── DOM refs ──────────────────────────────────────────────────────────────
-const profileSection = document.getElementById('profileSection');
-const chatSection    = document.getElementById('chatSection');
-const profileForm    = document.getElementById('profileForm');
-const chatLog        = document.getElementById('chatLog');
-const message        = document.getElementById('message');
-const speechBubble   = document.getElementById('speechBubble');
-const voiceStatus    = document.getElementById('voiceStatus');
-const focusSummary   = document.getElementById('focusSummary');
-const healthSummary  = document.getElementById('healthSummary');
-const dailyPromptText= document.getElementById('dailyPromptText');
-const statusSub      = document.getElementById('statusSub');
-const modePill       = document.getElementById('modePill');
-const moodPill       = document.getElementById('moodPill');
-const healthPill     = document.getElementById('healthPill');
-const listenButton   = document.getElementById('listenButton');
-const sendButton     = document.getElementById('sendButton');
-const toolRow        = document.getElementById('toolRow');
-const clockDisplay   = document.getElementById('clockDisplay');
+/* ════════════════════════════════════════════════════════
+   CORE STATE
+════════════════════════════════════════════════════════ */
+let profile   = null;
+let lang      = 'hi';      // 'hi' | 'en'
+let lastReply = '';
+let proTimer  = null;
+let isListening  = false;
+let isSpeaking   = false;
 
-let currentProfile   = null;
-let proactiveTimer   = null;
+/* ════════════════════════════════════════════════════════
+   DOM REFS
+════════════════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+const profileSection = $('profileSection');
+const chatSection    = $('chatSection');
+const profileForm    = $('profileForm');
+const chatLog        = $('chatLog');
+const msgInput       = $('msgInput');
+const speechBubble   = $('speechBubble');
+const voiceDot       = $('voiceDot');
+const voiceLabel     = $('voiceLabel');
+const focusSummary   = $('focusSummary');
+const healthSummary  = $('healthSummary');
+const statusSub      = $('statusSub');
+const modePill       = $('modePill');
+const moodPill       = $('moodPill');
+const healthPill     = $('healthPill');
+const toolRow        = $('toolRow');
+const clockEl        = $('clockEl');
+const wallClockEl    = $('wallClockEl');
+const dailyText      = $('dailyText');
+const listenBtn      = $('listenBtn');
+const speakBtn       = $('speakBtn');
+const sendBtn        = $('sendBtn');
 
-// ── Clock ─────────────────────────────────────────────────────────────────
-function updateClock(){
-  const now = new Date();
-  const h = String(now.getHours()).padStart(2,'0');
-  const m = String(now.getMinutes()).padStart(2,'0');
-  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  clockDisplay.textContent = days[now.getDay()] + ' ' + h + ':' + m;
+/* ════════════════════════════════════════════════════════
+   CLOCK
+════════════════════════════════════════════════════════ */
+function tick(){
+  const n = new Date();
+  const hh = String(n.getHours()).padStart(2,'0');
+  const mm = String(n.getMinutes()).padStart(2,'0');
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  clockEl.textContent = days[n.getDay()] + ' ' + hh + ':' + mm;
+  wallClockEl.textContent = hh + ':' + mm;
 }
-updateClock();
-setInterval(updateClock, 30000);
+tick(); setInterval(tick,30000);
 
-// ── Bubble & speech ───────────────────────────────────────────────────────
+/* ════════════════════════════════════════════════════════
+   LANGUAGE TOGGLE
+════════════════════════════════════════════════════════ */
+function setLang(l){
+  lang = l;
+  $('btnHindi').classList.toggle('active', l==='hi');
+  $('btnEnglish').classList.toggle('active', l==='en');
+}
+
+/* ════════════════════════════════════════════════════════
+   SPEECH BUBBLE
+════════════════════════════════════════════════════════ */
 function setBubble(text){
-  speechBubble.style.animation = 'none';
+  speechBubble.style.animation='none';
   speechBubble.offsetHeight;
-  speechBubble.style.animation = 'bubblePop .4s cubic-bezier(.34,1.56,.64,1)';
-  speechBubble.textContent = text.length > 120 ? text.slice(0,117)+'…' : text;
+  speechBubble.style.animation='popIn .5s cubic-bezier(.34,1.56,.64,1)';
+  const short = text.length > 110 ? text.slice(0,107)+'…' : text;
+  speechBubble.textContent = short;
 }
 
-function isHindi(text){ return /[\u0900-\u097F]/.test(text) }
+/* ════════════════════════════════════════════════════════
+   VOICE ENGINE — FULL IMPLEMENTATION
+════════════════════════════════════════════════════════ */
+const SS = window.speechSynthesis;
+let voices = [];
 
-function chooseSaraVoice(text){
-  const voices = window.speechSynthesis.getVoices();
-  const hindi = isHindi(text);
-  const hindiR = [/heera/i,/kalpana/i,/swara/i,/hindi/i,/hi-in/i];
-  const enR    = [/female/i,/zira/i,/aria/i,/susan/i,/samantha/i,/victoria/i,/karen/i,/google uk english female/i];
-  const rules  = hindi ? hindiR : enR;
-  for(const r of rules){ const v=voices.find(v=>r.test(v.name)||r.test(v.lang)); if(v)return v; }
-  if(hindi) return voices.find(v=>/hi-|hindi/i.test(v.lang))||voices[0];
-  return voices.find(v=>/en-(gb|us|in)/i.test(v.lang))||voices[0];
+function loadVoices(){
+  voices = SS ? SS.getVoices() : [];
+}
+if(SS){
+  loadVoices();
+  SS.onvoiceschanged = loadVoices;
 }
 
-function say(text){
-  if(!('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  const clean = text.replace(/[^\w\s\u0900-\u097F,.!?'-]/g,' ').replace(/\s+/g,' ').trim();
-  const u = new SpeechSynthesisUtterance(clean);
-  u.rate=.9; u.pitch=1.12;
-  const v = chooseSaraVoice(clean);
-  if(v) u.voice=v;
-  u.onstart=()=> voiceStatus.textContent = v?'Sara is speaking with '+v.name+'.':'Sara is speaking.';
-  u.onend=()=> voiceStatus.textContent = v?'Voice ready: '+v.name:'Speech ready.';
-  window.speechSynthesis.speak(u);
+function pickVoice(text){
+  if(!voices.length) loadVoices();
+  const isHindi = /[\u0900-\u097F]/.test(text) || lang==='hi';
+
+  if(isHindi){
+    // Priority: named Hindi voices → hi-IN lang voices → India English → first available
+    const hindiPriority = [
+      v => /heera|kalpana|swara|lekha/i.test(v.name),
+      v => /hindi/i.test(v.name),
+      v => v.lang === 'hi-IN',
+      v => /hi[-_]/.test(v.lang),
+      v => /india/i.test(v.name) && /female/i.test(v.name),
+      v => /en[-_]IN/i.test(v.lang),
+    ];
+    for(const fn of hindiPriority){
+      const v = voices.find(fn);
+      if(v) return v;
+    }
+  } else {
+    const enPriority = [
+      v => /samantha|karen|moira|tessa|victoria|veena/i.test(v.name),
+      v => /google uk english female/i.test(v.name.toLowerCase()),
+      v => /aria|jenny|sonia|hazel/i.test(v.name),
+      v => /female/i.test(v.name) && /en[-_](GB|US|AU)/i.test(v.lang),
+      v => /en[-_](GB|US)/i.test(v.lang),
+    ];
+    for(const fn of enPriority){
+      const v = voices.find(fn);
+      if(v) return v;
+    }
+  }
+  return voices[0] || null;
 }
 
-// ── Chat bubbles ──────────────────────────────────────────────────────────
+function say(text, forceLang){
+  if(!SS || !text) return;
+  SS.cancel();
+
+  // Split into Hindi and English segments
+  // Hindi script chars are U+0900–U+097F
+  const segments = splitBilingual(text);
+
+  function speakSegment(idx){
+    if(idx >= segments.length){ onDone(); return; }
+    const seg = segments[idx];
+    const clean = seg.text.replace(/[*_~`#[\]()]/g,'').replace(/\s+/g,' ').trim();
+    if(!clean){ speakSegment(idx+1); return; }
+
+    const u = new SpeechSynthesisUtterance(clean);
+    u.rate  = 0.88;
+    u.pitch = 1.1;
+    u.volume= 1;
+
+    // Choose language for this segment
+    const useHindi = forceLang==='hi' || seg.isHindi;
+    const v = pickVoice(useHindi ? 'हिंदी' : 'english');
+    if(v){
+      u.voice = v;
+      u.lang  = useHindi ? 'hi-IN' : (v.lang || 'en-US');
+    } else {
+      u.lang  = useHindi ? 'hi-IN' : 'en-US';
+    }
+
+    u.onstart = () => {
+      isSpeaking = true;
+      voiceDot.className = 'voice-dot speaking';
+      voiceLabel.textContent = useHindi ? 'बोल रही हूँ…' : 'Speaking…';
+    };
+    u.onend = () => speakSegment(idx+1);
+    u.onerror = () => speakSegment(idx+1);
+
+    SS.speak(u);
+  }
+
+  function onDone(){
+    isSpeaking = false;
+    voiceDot.className = 'voice-dot';
+    voiceLabel.textContent = 'Ready';
+  }
+
+  speakSegment(0);
+}
+
+// Split text into Hindi/English segments
+function splitBilingual(text){
+  const segments = [];
+  let cur = '';
+  let curHindi = null;
+
+  for(const ch of text){
+    const isH = /[\u0900-\u097F]/.test(ch);
+    if(curHindi === null) curHindi = isH;
+    if(isH !== curHindi && cur.trim()){
+      segments.push({text:cur, isHindi:curHindi});
+      cur = '';
+      curHindi = isH;
+    }
+    cur += ch;
+  }
+  if(cur.trim()) segments.push({text:cur, isHindi:curHindi||false});
+  return segments.length ? segments : [{text, isHindi:false}];
+}
+
+function stopSpeaking(){
+  if(SS) SS.cancel();
+  isSpeaking=false;
+  voiceDot.className='voice-dot';
+  voiceLabel.textContent='Ready';
+}
+
+/* ════════════════════════════════════════════════════════
+   SPEECH RECOGNITION (Voice Input)
+════════════════════════════════════════════════════════ */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognizer = null;
+
+if(SR){
+  recognizer = new SR();
+  recognizer.continuous    = false;
+  recognizer.interimResults= false;
+  recognizer.maxAlternatives = 1;
+
+  recognizer.onresult = e => {
+    const t = e.results[0][0].transcript;
+    msgInput.value = t;
+    stopListening();
+    voiceLabel.textContent = 'Got it! Send?';
+  };
+  recognizer.onerror = () => stopListening();
+  recognizer.onend   = () => {
+    if(isListening) stopListening();
+  };
+}
+
+function startListening(){
+  if(!recognizer){ voiceLabel.textContent='Not supported'; return; }
+  if(isSpeaking) stopSpeaking();
+  recognizer.lang = lang==='hi' ? 'hi-IN' : 'en-US';
+  recognizer.start();
+  isListening = true;
+  listenBtn.classList.add('active-listen');
+  voiceDot.className = 'voice-dot listening';
+  voiceLabel.textContent = lang==='hi' ? 'सुन रही हूँ…' : 'Listening…';
+}
+
+function stopListening(){
+  isListening = false;
+  listenBtn.classList.remove('active-listen');
+  voiceDot.className = 'voice-dot';
+  voiceLabel.textContent = 'Ready';
+  try{ recognizer && recognizer.stop(); }catch(e){}
+}
+
+listenBtn.addEventListener('click', ()=>{
+  isListening ? stopListening() : startListening();
+});
+
+speakBtn.addEventListener('click', ()=>{
+  if(lastReply) say(lastReply);
+});
+
+/* ════════════════════════════════════════════════════════
+   CHAT BUBBLES
+════════════════════════════════════════════════════════ */
 function addBubble(role, text, speak=false){
   const d = document.createElement('div');
-  d.className = 'bubble ' + (role==='sara' ? 'bubble-sara' : 'bubble-user');
+  d.className = 'bbl ' + (role==='sara' ? 'bbl-sara' : 'bbl-user');
   d.textContent = text;
   chatLog.appendChild(d);
-  chatLog.scrollTop = chatLog.scrollHeight;
-  document.getElementById('contentArea').scrollTop = document.getElementById('contentArea').scrollHeight;
-  if(role==='sara'){ setBubble(text); if(speak) say(text); }
+  scrollBottom();
+  if(role==='sara'){
+    lastReply = text;
+    setBubble(text);
+    if(speak) say(text);
+  }
 }
 
-// ── Activate chat mode ────────────────────────────────────────────────────
-function setMode(p){
-  currentProfile = p;
+function scrollBottom(){
+  const ca = $('contentArea');
+  ca.scrollTop = ca.scrollHeight;
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+/* ════════════════════════════════════════════════════════
+   ACTIVATE CHAT MODE
+════════════════════════════════════════════════════════ */
+function activateChat(p){
+  profile = p;
   profileSection.classList.add('hide');
   chatSection.classList.remove('hide');
   toolRow.classList.remove('hide');
-  statusSub.textContent = 'Friend mode · ' + p.name;
-  modePill.textContent  = '🌿 Active';
-  moodPill.textContent  = '😊 ' + (p.mood||'—');
-  healthPill.textContent= '💚 ' + (p.health ? p.health.slice(0,20) : '—');
+  statusSub.textContent   = (lang==='hi' ? 'Friend mode · ' : 'Friend mode · ') + p.name;
+  modePill.textContent    = '🌿 Active';
+  moodPill.textContent    = '😊 ' + (p.mood   ? p.mood.slice(0,16)   : '—');
+  healthPill.textContent  = '💚 ' + (p.health ? p.health.slice(0,16) : '—');
   focusSummary.textContent  = p.today  ? 'Today: '+p.today  : 'Tell Sara what is happening today.';
-  healthSummary.textContent = p.health ? 'Health: '+p.health : 'Tell Sara how your body and energy feel.';
-  dailyPromptText.textContent = 'Sara is ready to support ' + p.name + ' today.';
-  startChecks();
+  healthSummary.textContent = p.health ? 'Health: '+p.health : 'Tell Sara how you feel today.';
+  dailyText.textContent = lang==='hi'
+    ? `Sara ${p.name} ki mood, health, energy, paani, khana, aur din ke baare mein poochhengi.`
+    : `Sara is ready to check on ${p.name}'s mood, health, energy, and day.`;
+  startProactive();
 }
 
 function fillForm(p){
-  Object.entries(p).forEach(([k,v])=>{ const f=document.getElementById(k); if(f)f.value=v; });
+  Object.entries(p).forEach(([k,v])=>{ const f=$(k); if(f) f.value=v; });
 }
 
-// ── API helpers ───────────────────────────────────────────────────────────
-async function sendMessage(msg, speak=true){
+/* ════════════════════════════════════════════════════════
+   API
+════════════════════════════════════════════════════════ */
+async function apiChat(msg, speak=true){
   addBubble('user', msg);
-  const r = await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});
-  const d = await r.json();
-  addBubble('sara', d.reply, speak);
-  if(d.focus_summary)  focusSummary.textContent  = d.focus_summary;
-  if(d.health_summary) healthSummary.textContent = d.health_summary;
+  try{
+    const r = await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:msg, lang})
+    });
+    const d = await r.json();
+    addBubble('sara', d.reply, speak);
+    if(d.focus_summary)  focusSummary.textContent  = d.focus_summary;
+    if(d.health_summary) healthSummary.textContent = d.health_summary;
+  }catch(e){
+    addBubble('sara', lang==='hi'
+      ? 'Oops! Server se baat nahi ho pa rahi. Thodi der mein try karein.'
+      : 'Oops! Could not reach the server. Please try again.');
+  }
 }
 
 async function loadProfile(){
-  const r = await fetch('/api/profile');
-  const d = await r.json();
-  if(!d.profile) return;
-  fillForm(d.profile);
-  setMode(d.profile);
-  addBubble('sara','नमस्ते '+d.profile.name+', मैं सारा हूँ। मैं आपकी health, आज का दिन और goals समझकर आपसे दोस्त की तरह बात करूँगी।',true);
-}
-
-function startChecks(){
-  if(proactiveTimer) clearInterval(proactiveTimer);
-  proactiveTimer = setInterval(async()=>{
-    if(!currentProfile||document.hidden) return;
-    const r = await fetch('/api/checkin');
+  try{
+    const r = await fetch('/api/profile');
     const d = await r.json();
-    if(d.message){
-      addBubble('sara',d.message,false);
-      if(d.focus_summary)  focusSummary.textContent  = d.focus_summary;
-      if(d.health_summary) healthSummary.textContent = d.health_summary;
-    }
-  },45000);
+    if(!d.profile) return;
+    fillForm(d.profile);
+    activateChat(d.profile);
+    const welcome = d.profile.name
+      ? `Namaste ${d.profile.name}! 🙏 Main Sara hoon. Aapka profile load ho gaya hai. Aap mujhse Hindi ya English mein baat kar sakti hain! How are you doing today?`
+      : 'Welcome back! Sara is ready.';
+    addBubble('sara', welcome, true);
+  }catch(e){}
 }
 
-// ── Events ────────────────────────────────────────────────────────────────
+function startProactive(){
+  if(proTimer) clearInterval(proTimer);
+  proTimer = setInterval(async()=>{
+    if(!profile || document.hidden) return;
+    try{
+      const r = await fetch('/api/checkin');
+      const d = await r.json();
+      if(d.message){
+        addBubble('sara', d.message, false);
+        setBubble(d.message);
+        if(d.focus_summary)  focusSummary.textContent  = d.focus_summary;
+        if(d.health_summary) healthSummary.textContent = d.health_summary;
+      }
+    }catch(e){}
+  }, 45000);
+}
+
+/* ════════════════════════════════════════════════════════
+   EVENTS
+════════════════════════════════════════════════════════ */
 profileForm.addEventListener('submit', async e=>{
   e.preventDefault();
   const payload = Object.fromEntries(new FormData(profileForm).entries());
-  const r = await fetch('/api/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  payload.lang = lang;
+  const r = await fetch('/api/profile',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  });
   const d = await r.json();
-  setMode(d.profile);
-  chatLog.innerHTML='';
-  addBubble('sara',d.message,true);
+  activateChat(d.profile);
+  chatLog.innerHTML = '';
+  addBubble('sara', d.message, true);
 });
 
-sendButton.addEventListener('click', async ()=>{
-  const m = message.value.trim();
+sendBtn.addEventListener('click', async ()=>{
+  const m = msgInput.value.trim();
   if(!m) return;
-  message.value='';
-  await sendMessage(m,true);
+  msgInput.value = '';
+  await apiChat(m, true);
 });
 
-message.addEventListener('keydown', async e=>{
-  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendButton.click(); }
+msgInput.addEventListener('keydown', e=>{
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendBtn.click(); }
 });
 
-document.querySelectorAll('[data-prompt]').forEach(b=>{
-  b.addEventListener('click',()=>{ message.value=b.dataset.prompt; message.focus(); });
-});
-
-document.querySelectorAll('[data-checkin]').forEach(b=>{
-  b.addEventListener('click', async()=>{
-    if(!currentProfile){ message.value=b.dataset.checkin; message.focus(); return; }
-    await sendMessage(b.dataset.checkin,true);
+// Tool buttons
+document.querySelectorAll('[data-prompt-hi]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    msgInput.value = lang==='hi' ? btn.dataset.promptHi : btn.dataset.promptEn;
+    msgInput.focus();
   });
 });
 
-// Voice input
-const SR = window.SpeechRecognition||window.webkitSpeechRecognition;
-if(SR){
-  const rec = new SR();
-  rec.lang='en-US'; rec.interimResults=false; rec.maxAlternatives=1;
-  listenButton.addEventListener('click',()=>{ rec.start(); voiceStatus.textContent='Listening…'; });
-  rec.onresult=e=>{ message.value=e.results[0][0].transcript; voiceStatus.textContent='Voice captured. Send it now.'; };
-  rec.onerror=()=> voiceStatus.textContent='Voice error. You can still type.';
-  rec.onend=()=>{ if(!message.value.trim()) voiceStatus.textContent='Speech ready.'; };
-} else {
-  listenButton.disabled=true;
-  voiceStatus.textContent='Voice input not supported, but Sara can still speak.';
-}
+// Mood check-in buttons
+document.querySelectorAll('[data-checkin]').forEach(btn=>{
+  btn.addEventListener('click', async()=>{
+    if(!profile){ msgInput.value=btn.dataset.checkin; msgInput.focus(); return; }
+    await apiChat(btn.dataset.checkin, true);
+  });
+});
 
-// Load voices async
-if('speechSynthesis' in window){
-  window.speechSynthesis.onvoiceschanged = ()=>{};
-}
+// Auto-resize textarea
+msgInput.addEventListener('input', ()=>{
+  msgInput.style.height='auto';
+  msgInput.style.height = Math.min(msgInput.scrollHeight,110)+'px';
+});
 
+/* ════════════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════════════ */
 loadProfile().catch(()=>{});
 </script>
 </body>
@@ -1390,267 +1711,290 @@ loadProfile().catch(()=>{});
 """
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# BACKEND LOGIC
+# ─────────────────────────────────────────────────────────────────────────────
+
 def load_profile():
     if not PROFILE_PATH.exists():
         return None
     try:
-        data = json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
-        return data if isinstance(data, dict) else None
+        d = json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
+        return d if isinstance(d, dict) else None
     except (json.JSONDecodeError, OSError):
         return None
 
 
-def save_profile(profile):
-    PROFILE_PATH.write_text(json.dumps(profile, indent=2), encoding="utf-8")
+def save_profile(p):
+    PROFILE_PATH.write_text(json.dumps(p, indent=2), encoding="utf-8")
 
 
 def normalize_profile(data):
-    fields = ["name", "city", "age", "mood", "health", "today", "interests", "goals", "routine"]
-    profile = {f: str(data.get(f, "")).strip() for f in fields}
-    profile["name"] = profile["name"] or "friend"
-    profile["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-    return profile
+    fields = ["name","city","age","mood","health","today","interests","goals","routine"]
+    p = {f: str(data.get(f,"")).strip() for f in fields}
+    p["name"] = p["name"] or "friend"
+    p["lang"] = str(data.get("lang","hi")).strip()
+    p["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+    return p
 
 
-def focus_summary(profile):
-    return f"Today: {profile.get('today') or 'No plan shared yet.'} | Goal path: {profile.get('goals') or 'No goals shared yet.'}"
+def focus_summary(p):
+    return f"Today: {p.get('today') or 'No plan yet.'} | Goals: {p.get('goals') or 'Not shared yet.'}"
 
 
-def health_summary(profile):
-    return f"Health: {profile.get('health') or 'No health note shared yet.'} | Mood: {profile.get('mood') or 'unknown mood'}"
+def health_summary(p):
+    return f"Health: {p.get('health') or 'Not shared.'} | Mood: {p.get('mood') or 'Unknown'}"
 
 
-def welcome(profile):
-    bits = []
-    if profile.get("city"):
-        bits.append(f"from {profile['city']}")
-    if profile.get("interests"):
-        bits.append(f"interested in {profile['interests']}")
-    if profile.get("goals"):
-        bits.append(f"working toward {profile['goals']}")
-    if profile.get("today"):
-        bits.append(f"handling {profile['today']} today")
-    detail = ", ".join(bits) if bits else "ready to begin"
-    return f"Hi {profile['name']}. I am Sara. I know you are {detail}. I will check on your health, ask how your day is going, teach you little things about the world, and help you make kind smart decisions."
-
-
-def lesson():
-    return random.choice([
-        "World lesson: forests cool land, protect soil, and hold water, so they shape climate as well as beauty.",
-        "World lesson: trade routes changed food, clothing, and language, which is why cultures often carry traces of distant places.",
-        "World lesson: the Moon is about 384,400 kilometers away, so moonlight is sunlight reflected from a very distant rocky world.",
-        "World lesson: memory improves more with sleep, repetition, and active recall than with passive rereading.",
-    ])
-
-
-def suggestion(profile):
-    interests = profile.get("interests", "").lower()
-    goals = profile.get("goals", "").lower()
-    routine = profile.get("routine", "").lower()
-    today = profile.get("today", "").lower()
-    age = profile.get("age", "").lower()
-    if "code" in interests or "software" in goals or "engineer" in goals:
-        return "Suggestion: build one small thing today that you can finish. Tiny shipped work teaches more than a big unfinished dream."
-    if "study" in goals or "student" in age or "class" in today:
-        return "Suggestion: study in short focused rounds and explain each topic back in your own words."
-    if "health" in goals or "exercise" in routine or "fitness" in interests:
-        return "Suggestion: protect your energy first. Water, a short walk, and one simple meal upgrade can change the whole day."
-    if "busy" in today or "meeting" in today:
-        return "Suggestion: choose one non-negotiable task for today and let the rest be flexible. Clarity lowers stress."
-    return "Suggestion: do one meaningful task, one body-care action, and one quiet reset for your mind today."
-
-
-def friend_check(profile):
-    mood = profile.get("mood") or "a little uncertain"
-    return f"Hey {profile['name']}, I am with you. You mentioned feeling {mood}. Keep today kind and real: care for your body, finish one meaningful thing, and do not measure your worth only by output."
-
-
-def proactive(profile):
-    return random.choice([
-        f"Little check-in, {profile['name']}: have you had water, stretched a little, and taken one calm breath today?",
-        f"{profile['name']}, what is the one thing happening today that matters most? I can help you make it feel lighter.",
-        f"Gentle reminder, {profile['name']}: if your energy is low, simplify the plan before blaming yourself.",
-        f"{profile['name']}, how is your health today: sleep, food, water, movement, and stress? I care about all of it.",
-    ])
-
-
-def welcome_hi(profile):
-    return f"Namaste {profile['name']}, main Sara hoon. Main aapki health, aaj ka din, goals aur routine ke hisaab se aapse dosti se baat karungi."
-
+# ── HINDI REPLIES ──────────────────────────────────────────────────────────
 
 def lesson_hi():
     return random.choice([
-        "Duniya ki ek baat: jungle hawa ko thanda rakhne, mitti bachane aur paani sambhalne mein bahut madad karte hain.",
-        "Duniya ki ek baat: purane trade routes ne khane, kapde aur bhasha ko bahut prabhavit kiya tha.",
-        "Duniya ki ek baat: chaand ki roshni asal mein suraj ki roshni hoti hai jo chaand se takra kar aati hai.",
-        "Duniya ki ek baat: padhai tab zyada yaad rehti hai jab aap break lekar repeat karte ho aur khud se recall karte ho.",
+        "🌍 Duniya ki ek baat: jungle hawa ko thanda rakhte hain, mitti bachate hain aur paani sambhalte hain.",
+        "🌍 Duniya ki ek baat: purane trade routes ne poori duniya ke khane, kapde aur bhasha ko badal diya tha.",
+        "🌍 Duniya ki ek baat: Chaand sirf 384,400 km door hai — uski roshni actually suraj ki hi reflected roshni hai.",
+        "🌍 Duniya ki ek baat: Padhai tab zyada yaad rehti hai jab aap chhote breaks lekar khud se topic recall karte ho.",
+        "🌍 Duniya ki ek baat: Paani peena dimag ki productivity 14% tak badha sakta hai — hydrated rahein!",
     ])
 
 
-def suggestion_hi(profile):
-    interests = profile.get("interests", "").lower()
-    goals = profile.get("goals", "").lower()
-    today = profile.get("today", "").lower()
-    age = profile.get("age", "").lower()
-    if "code" in interests or "software" in goals or "engineer" in goals:
-        return "Suggestion: aaj ek chhota sa feature complete karo. Chhoti finished cheezein bade incomplete plans se better hoti hain."
-    if "study" in goals or "student" in age or "class" in today:
-        return "Suggestion: padhai ko short focused rounds mein karo aur phir topic ko apne words mein samjhao."
-    return "Suggestion: aaj ek important kaam, ek health-care action, aur ek chhota mind reset zaroor karo."
+def suggestion_hi(p):
+    i = p.get("interests","").lower()
+    g = p.get("goals","").lower()
+    t = p.get("today","").lower()
+    a = p.get("age","").lower()
+    if any(x in i+g for x in ["code","coding","software","engineer","programming","developer"]):
+        return "💡 Suggestion: Aaj sirf ek chhoti cheez complete karo — ek function, ek feature. Chhoti finished cheezein bade unfinished plans se zyada sikhati hain."
+    if any(x in g+a+t for x in ["study","student","class","padhai","college"]):
+        return "💡 Suggestion: Pomodoro technique try karo — 25 min focused padhai, 5 min break. Topic baad mein khud se explain karo."
+    if any(x in i+g for x in ["health","fitness","exercise","gym","yoga","workout"]):
+        return "💡 Suggestion: Pehle energy protect karo — paani, halka khana, aur 10 min walk. Ye ek din badal sakta hai."
+    return "💡 Suggestion: Aaj teen kaam karo — ek important task, ek body care action (paani, walk), aur ek chhota mind reset."
 
 
-def friend_check_hi(profile):
-    mood = profile.get("mood") or "thoda uncertain"
-    return f"{profile['name']}, main aapke saath hoon. Aapne bataya ki aap {mood} mehsoos kar rahe ho. Aaj apne body ka khayal rakho, ek meaningful kaam complete karo, aur khud par zyada pressure mat daalo."
+def friend_hi(p):
+    m = p.get("mood") or "thoda alag"
+    return f"🫶 {p['name']}, main aapke saath hoon. Aapne bataya ki aap '{m}' feel kar rahe hain. Aaj apne aap par gentle rahein — ek meaningful kaam karo, apna khayal rakho, aur apni value sirf output se mat naapein."
 
 
-def proactive_hi(profile):
+def proactive_hi(p):
     return random.choice([
-        f"{profile['name']}, paani piya kya? Thoda stretch bhi kar lo.",
-        f"{profile['name']}, aaj ka sabse important kaam kaunsa hai? Main usse simple banane mein help kar sakti hoon.",
-        f"{profile['name']}, agar energy low hai to plan ko easy banao, khud ko blame mat karo.",
-        f"{profile['name']}, sleep, food, water aur stress ka kya haal hai aaj?",
+        f"💧 {p['name']}, ek chhota check-in — paani piya kya? Thoda stretch kiya? Ek deep breath lena na bhoolein. 🌸",
+        f"🌟 {p['name']}, aaj ka sabse zaroori kaam kaunsa hai? Main usse aasaan banane mein help kar sakti hoon.",
+        f"☕ {p['name']}, agar energy low hai to plan ko simple karo — khud ko blame mat karo. Aap bahut achha kar rahe ho.",
+        f"💚 {p['name']}, neend, khana, paani, aur stress — ye sab kaisa chal raha hai aaj? Main sab sunna chahti hoon.",
     ])
 
 
-def reply_hi(message, profile):
-    m = message.lower()
-    name = profile.get("name", "friend")
-    if any(x in m for x in ["health", "body", "sleep", "water", "food", "energy", "tabiyat", "sehat"]):
-        return f"{name}, aapki health sabse pehle aati hai. Paani, thoda khana, aur aaj ke liye gentle pace rakho. {suggestion_hi(profile)}"
-    if any(x in m for x in ["aaj", "today", "schedule", "din"]):
-        return f"{name}, aaj ke 3 sabse important kaam batao, main unhe simple kar dungi. Filhal: {suggestion_hi(profile)}"
-    if any(x in m for x in ["duniya", "world", "seekhao", "teach", "fact"]):
+def welcome_hi(p):
+    parts = []
+    if p.get("city"):       parts.append(f"{p['city']} se")
+    if p.get("interests"):  parts.append(f"{p['interests']} mein interested")
+    if p.get("goals"):      parts.append(f"{p['goals']} ki taraf badh rahi hain")
+    detail = ", ".join(parts) if parts else "aur main aapke liye taiyaar hoon"
+    return (f"Namaste {p['name']}! 🙏 Main Sara hoon — aapki room companion. "
+            f"Main jaanti hoon aap {detail}. "
+            f"Main aapki health check karungi, aaj ke din mein madad karungi, kuch interesting sikhaungi, "
+            f"aur ek sachchi dost ki tarah aapke saath rahungi. Aap Hindi ya English dono mein baat kar sakti hain! 🌸")
+
+
+def reply_hi(msg, p):
+    m = msg.lower()
+    name = p.get("name","friend")
+    if any(x in m for x in ["health","sehat","body","neend","sleep","paani","water","food","khana","energy","tabiyat"]):
+        return f"💚 {name}, aapki sehat sabse pehle aati hai.\n\nPehle basics: paani, thoda nutritious khana, aur honest pace rakhein aaj.\n\n{suggestion_hi(p)}"
+    if any(x in m for x in ["aaj","today","schedule","din","plan","kaam"]):
+        return f"🗓️ {name}, aaj ke teen sabse important kaam batao — main unhe simple banane ki koshish karungi.\n\nAbhi ke liye:\n{suggestion_hi(p)}"
+    if any(x in m for x in ["duniya","world","teach","sikhao","fact","interesting","bataao"]):
         return lesson_hi()
-    if any(x in m for x in ["suggest", "advice", "kya karu", "recommend"]):
-        return suggestion_hi(profile)
-    if any(x in m for x in ["friend", "sad", "tired", "stressed", "motivate", "udaas"]):
-        return friend_check_hi(profile)
-    return f"{name}, main samajh rahi hoon. {suggestion_hi(profile)}\n\n{lesson_hi()}\n\n{friend_check_hi(profile)}"
+    if any(x in m for x in ["suggest","advice","kya karu","recommend","help","madad"]):
+        return suggestion_hi(p)
+    if any(x in m for x in ["dost","friend","sad","udaas","tired","thaka","stressed","tension","motivate","akela"]):
+        return friend_hi(p)
+    if any(x in m for x in ["goal","plan","routine","habit","productive","lakshya"]):
+        return f"🎯 {name}, pehle agle ek visible step choose karo, poora pahaad mat dekho.\n\nWoh ek step aaj ki timeline mein daal do, aur apni energy protect karo karte waqt.\n\n{suggestion_hi(p)}"
+    if any(x in m for x in ["hello","hi","hey","namaste","haan","hain"]):
+        return f"Namaste {name}! 🌸 Main yahan hoon. Health check-in chahiye, koi duniya ki baat sunni hai, ya aaj ke liye smart plan? Batao!"
+    return f"🌸 {name}, main samajh rahi hoon.\n\n{suggestion_hi(p)}\n\n{lesson_hi()}\n\n{friend_hi(p)}"
 
 
-def reply(message, profile):
-    m = message.lower()
-    name = profile.get("name", "friend")
-    if any(x in m for x in ["health", "body", "sick", "exercise", "sleep", "water", "food", "energy"]):
-        return f"{name}, your health matters first. Start with the basics: water, a little food if you have not eaten, and honest pacing. {suggestion(profile)}"
-    if any(x in m for x in ["today", "day", "schedule"]):
-        return f"{name}, tell me the three biggest parts of your day and I will help you simplify them. For now: {suggestion(profile)}"
-    if any(x in m for x in ["teach", "learn", "world", "fact", "explain"]):
-        return lesson()
-    if any(x in m for x in ["suggest", "advice", "recommend", "what should i do"]):
-        return suggestion(profile)
-    if any(x in m for x in ["friend", "check in", "sad", "tired", "lonely", "stressed", "motivate"]):
-        return friend_check(profile)
-    if any(x in m for x in ["goal", "plan", "routine", "habit", "productive"]):
-        return f"{name}, choose the next visible step, not the whole mountain. Put that one step on today's timeline, and protect your energy while doing it."
-    if any(x in m for x in ["hello", "hi", "hey"]):
-        return f"Hello {name}. I am here. Want a health check-in, a world lesson, or a smart plan for today?"
-    return f"{name}, I hear you. {suggestion(profile)}\n\n{lesson()}\n\n{friend_check(profile)}"
+# ── ENGLISH REPLIES ────────────────────────────────────────────────────────
+
+def lesson_en():
+    return random.choice([
+        "🌍 World fact: Forests cool land, protect soil, and hold water — they shape climate as much as beauty.",
+        "🌍 World fact: Ancient trade routes changed food, clothing, and language — which is why cultures carry traces of distant places.",
+        "🌍 World fact: The Moon is about 384,400 km away — moonlight is simply sunlight bounced off a distant rocky world.",
+        "🌍 World fact: Memory improves more with sleep, repetition, and active recall than with passive re-reading.",
+        "🌍 World fact: Drinking water can boost brain productivity by up to 14% — stay hydrated!",
+    ])
 
 
-def localized_welcome(profile):
-    return welcome_hi(profile)
+def suggestion_en(p):
+    i = p.get("interests","").lower()
+    g = p.get("goals","").lower()
+    t = p.get("today","").lower()
+    a = p.get("age","").lower()
+    if any(x in i+g for x in ["code","coding","software","engineer","programming","developer"]):
+        return "💡 Suggestion: Build one small thing today you can actually finish. Tiny shipped work teaches more than big unfinished dreams."
+    if any(x in g+a+t for x in ["study","student","class","college"]):
+        return "💡 Suggestion: Study in focused 25-minute rounds, then take a real 5-minute break. Explain the topic back to yourself afterward."
+    if any(x in i+g for x in ["health","fitness","exercise","gym","yoga","workout"]):
+        return "💡 Suggestion: Protect your energy first — water, a light meal, and a 10-minute walk can transform the whole day."
+    return "💡 Suggestion: Do three things today — one important task, one body-care action (water, movement), and one quiet mind reset."
 
 
-def localized_proactive(profile):
-    return proactive_hi(profile)
+def friend_en(p):
+    m = p.get("mood") or "a little uncertain"
+    return f"🫶 {p['name']}, I am right here with you. You mentioned feeling '{m}' — be gentle with yourself today. Finish one meaningful thing, take care of your body, and please don't measure your worth only by your output."
 
 
-def localized_reply(message, profile):
-    return reply_hi(message, profile)
+def proactive_en(p):
+    return random.choice([
+        f"💧 Little check-in, {p['name']} — have you had water, stretched a little, and taken one calm breath today? 🌸",
+        f"🌟 {p['name']}, what's the one thing that matters most today? I can help you make it feel lighter.",
+        f"☕ Gentle reminder, {p['name']}: if your energy is low, simplify your plan before blaming yourself. You're doing well.",
+        f"💚 {p['name']}, how is your health today — sleep, food, water, movement, stress? I care about all of it.",
+    ])
 
+
+def welcome_en(p):
+    parts = []
+    if p.get("city"):       parts.append(f"from {p['city']}")
+    if p.get("interests"):  parts.append(f"interested in {p['interests']}")
+    if p.get("goals"):      parts.append(f"working toward {p['goals']}")
+    detail = ", ".join(parts) if parts else "and I'm ready for you"
+    return (f"Hello {p['name']}! 🌸 I'm Sara — your room companion. "
+            f"I know you are {detail}. "
+            f"I'll check on your health, help you through your day, teach you little things about the world, "
+            f"and talk to you like a real friend. You can speak to me in Hindi or English anytime! ✨")
+
+
+def reply_en(msg, p):
+    m = msg.lower()
+    name = p.get("name","friend")
+    if any(x in m for x in ["health","body","sick","sleep","water","food","energy","tired"]):
+        return f"💚 {name}, your health comes first.\n\nStart with the basics: water, a little food if you haven't eaten, and honest pacing.\n\n{suggestion_en(p)}"
+    if any(x in m for x in ["today","day","schedule","plan","task"]):
+        return f"🗓️ {name}, tell me the three biggest parts of your day and I'll help simplify them.\n\nFor now:\n{suggestion_en(p)}"
+    if any(x in m for x in ["teach","learn","world","fact","explain","interesting"]):
+        return lesson_en()
+    if any(x in m for x in ["suggest","advice","recommend","what should i do","help"]):
+        return suggestion_en(p)
+    if any(x in m for x in ["friend","sad","lonely","stressed","anxious","motivate","support"]):
+        return friend_en(p)
+    if any(x in m for x in ["goal","plan","routine","habit","productive"]):
+        return f"🎯 {name}, choose the next visible step — not the whole mountain.\n\nPut that one step on today's timeline and protect your energy while doing it.\n\n{suggestion_en(p)}"
+    if any(x in m for x in ["hello","hi","hey","namaste"]):
+        return f"Hello {name}! 🌸 I'm here. Want a health check-in, a world lesson, or a smart plan for today?"
+    return f"🌸 {name}, I hear you.\n\n{suggestion_en(p)}\n\n{lesson_en()}\n\n{friend_en(p)}"
+
+
+# ── DISPATCH ──────────────────────────────────────────────────────────────
+
+def dispatch_welcome(p):
+    l = p.get("lang","hi")
+    return welcome_hi(p) if l=="hi" else welcome_en(p)
+
+
+def dispatch_proactive(p):
+    l = p.get("lang","hi")
+    return proactive_hi(p) if l=="hi" else proactive_en(p)
+
+
+def dispatch_reply(msg, p, lang_override=None):
+    l = lang_override or p.get("lang","hi")
+    return reply_hi(msg, p) if l=="hi" else reply_en(msg, p)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# HTTP HANDLER
+# ─────────────────────────────────────────────────────────────────────────────
 
 class SaraHandler(BaseHTTPRequestHandler):
     def _json(self, payload, status=HTTPStatus.OK):
         body = json.dumps(payload).encode("utf-8")
         self.send_response(status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Content-Type","application/json; charset=utf-8")
+        self.send_header("Content-Length",str(len(body)))
+        self.send_header("Access-Control-Allow-Origin","*")
         self.end_headers()
         self.wfile.write(body)
 
     def _html(self, payload):
         body = payload.encode("utf-8")
         self.send_response(200)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
-        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Content-Type","text/html; charset=utf-8")
+        self.send_header("Content-Length",str(len(body)))
         self.end_headers()
         self.wfile.write(body)
 
     def _read_json(self):
-        length = int(self.headers.get("Content-Length", "0"))
-        data = self.rfile.read(length) if length else b"{}"
-        return json.loads(data.decode("utf-8"))
+        n = int(self.headers.get("Content-Length","0"))
+        raw = self.rfile.read(n) if n else b"{}"
+        return json.loads(raw.decode("utf-8"))
 
     def do_GET(self):
         path = urlparse(self.path).path
         if path == "/":
-            self._html(HTML_PAGE)
-            return
+            self._html(HTML_PAGE); return
         if path == "/api/profile":
-            self._json({"profile": load_profile()})
-            return
+            self._json({"profile": load_profile()}); return
         if path == "/api/checkin":
-            profile = load_profile()
-            if not profile:
-                self._json({"message": None})
-                return
+            p = load_profile()
+            if not p: self._json({"message":None}); return
             self._json({
-                "message": localized_proactive(profile),
-                "focus_summary": focus_summary(profile),
-                "health_summary": health_summary(profile)
-            })
-            return
-        self._json({"error": "Not found"}, status=HTTPStatus.NOT_FOUND)
+                "message": dispatch_proactive(p),
+                "focus_summary": focus_summary(p),
+                "health_summary": health_summary(p),
+            }); return
+        self._json({"error":"Not found"}, status=HTTPStatus.NOT_FOUND)
 
     def do_POST(self):
         path = urlparse(self.path).path
         if path == "/api/profile":
-            profile = normalize_profile(self._read_json())
-            save_profile(profile)
+            p = normalize_profile(self._read_json())
+            save_profile(p)
             self._json({
-                "profile": profile,
-                "message": localized_welcome(profile),
-                "focus_summary": focus_summary(profile),
-                "health_summary": health_summary(profile)
-            })
-            return
+                "profile": p,
+                "message": dispatch_welcome(p),
+                "focus_summary": focus_summary(p),
+                "health_summary": health_summary(p),
+            }); return
         if path == "/api/chat":
-            profile = load_profile()
-            if not profile:
-                self._json(
-                    {"reply": "Please tell me about yourself first so I can be more personal with you."},
-                    status=HTTPStatus.BAD_REQUEST
-                )
-                return
-            message = str(self._read_json().get("message", "")).strip()
-            if not message:
-                self._json({"reply": "I am listening. Tell me what is going on with you today."})
-                return
-            if any(x in message.lower() for x in ["i feel", "today i", "my health", "sleep", "stress", "energy"]):
-                profile["mood"] = message[:160]
-                profile["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-                save_profile(profile)
+            p = load_profile()
+            if not p:
+                self._json({"reply":"Please tell me about yourself first / Pehle apna profile bharo!"}, status=HTTPStatus.BAD_REQUEST); return
+            data    = self._read_json()
+            msg     = str(data.get("message","")).strip()
+            req_lang= str(data.get("lang","")).strip() or p.get("lang","hi")
+            if not msg:
+                self._json({"reply":"Main sun rahi hoon / I'm listening…"}); return
+            # Update mood if personal update
+            if any(x in msg.lower() for x in ["i feel","today i","main feel","aaj main","meri health","my health","sleep","neend","stress","energy"]):
+                p["mood"] = msg[:160]
+                p["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                save_profile(p)
             self._json({
-                "reply": localized_reply(message, profile),
-                "focus_summary": focus_summary(profile),
-                "health_summary": health_summary(profile)
-            })
-            return
-        self._json({"error": "Not found"}, status=HTTPStatus.NOT_FOUND)
+                "reply": dispatch_reply(msg, p, req_lang),
+                "focus_summary": focus_summary(p),
+                "health_summary": health_summary(p),
+            }); return
+        self._json({"error":"Not found"}, status=HTTPStatus.NOT_FOUND)
 
-    def log_message(self, format, *args):
+    def log_message(self, *args):
         return
 
 
 def run():
     server = ThreadingHTTPServer((HOST, PORT), SaraHandler)
-    print(f"Sara is ready at http://{HOST}:{PORT}")
+    print(f"✨ Sara is ready at http://{HOST}:{PORT}")
+    print(f"   Profile stored at: {PROFILE_PATH}")
+    print("   Press Ctrl+C to stop.")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\nSara is going to rest. Bye.")
+        print("\nSara is resting. Bye! 🌸")
     finally:
         server.server_close()
 
