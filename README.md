@@ -63,6 +63,7 @@ README.md            ← This file
 
 ---
 
+
 ## 🎙️ Voice System — How It Works
 
 Sara uses the **Web Speech API** built into your browser — no API keys or subscriptions needed.
