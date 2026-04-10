@@ -116,6 +116,7 @@ The 3D room is built entirely with **CSS 3D transforms** and **SVG** — no imag
 
 ---
 
+
 ## 👩🏽 Sara's Appearance
 
 Sara is a beautifully detailed SVG character:
