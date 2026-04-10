@@ -132,6 +132,7 @@ Sara is a beautifully detailed SVG character:
 
 ---
 
+
 ## 📱 Responsive Design
 
 - **Desktop (1200px+):** Side-by-side room + panel layout
