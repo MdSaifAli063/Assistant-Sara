@@ -226,6 +226,7 @@ kill -9 <pid>
 
 ---
 
+
 ## 💡 Tips for Best Experience
 
 1. **Use Chrome on Windows** — best Hindi voice support
