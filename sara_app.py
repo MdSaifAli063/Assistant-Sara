@@ -1808,7 +1808,6 @@ def reply_hi(msg, p):
     return f"🌸 {name}, main samajh rahi hoon.\n\n{suggestion_hi(p)}\n\n{lesson_hi()}\n\n{friend_hi(p)}"
 
 
-# ── ENGLISH REPLIES ────────────────────────────────────────────────────────
 
 def lesson_en():
     return random.choice([
