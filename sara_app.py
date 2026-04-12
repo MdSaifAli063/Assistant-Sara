@@ -501,7 +501,7 @@ body{
 
 /* ─── SARA AVATAR ─── */
 .avatar-wrap{
-  position:absolute;left:50%;bottom:33%;
+  position:absolute;left:50%;bottom:27%;
   transform:translateX(-50%);
   z-index:10;
   animation:saraFloat 5s ease-in-out infinite;
@@ -517,7 +517,7 @@ body{
   background:radial-gradient(ellipse,rgba(148,97,73,.28),transparent 70%);
   border-radius:50%;
 }
-.sara-svg{width:188px;filter:drop-shadow(0 24px 42px rgba(227,125,157,.24))}
+.sara-svg{width:198px;filter:drop-shadow(0 24px 42px rgba(227,125,157,.24))}
 
 /* ─── SPEECH BUBBLE ─── */
 .speech{
@@ -981,9 +981,9 @@ body{
         </linearGradient>
         <!-- Skin tone -->
         <linearGradient id="skinG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#f3ccb2"/>
-          <stop offset="55%" stop-color="#ddb090"/>
-          <stop offset="100%" stop-color="#c49072"/>
+          <stop offset="0%" stop-color="#ffe3d4"/>
+          <stop offset="55%" stop-color="#f2c8b7"/>
+          <stop offset="100%" stop-color="#deac98"/>
         </linearGradient>
         <!-- Hair -->
         <linearGradient id="hairG" x1="0" y1="0" x2="0" y2="1">
@@ -996,25 +996,26 @@ body{
           <stop offset="100%" stop-color="#d8a04d"/>
         </linearGradient>
         <radialGradient id="blushG" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="rgba(187,104,106,.18)"/>
+          <stop offset="0%" stop-color="rgba(224,154,162,.22)"/>
           <stop offset="100%" stop-color="transparent"/>
         </radialGradient>
         <radialGradient id="faceGlow" cx="45%" cy="35%" r="65%">
-          <stop offset="0%" stop-color="rgba(255,240,228,.20)"/>
-          <stop offset="70%" stop-color="rgba(255,227,213,.08)"/>
+          <stop offset="0%" stop-color="rgba(255,252,246,.42)"/>
+          <stop offset="70%" stop-color="rgba(255,236,224,.18)"/>
           <stop offset="100%" stop-color="transparent"/>
         </radialGradient>
         <radialGradient id="cheekLight" cx="50%" cy="50%" r="60%">
-          <stop offset="0%" stop-color="rgba(255,233,221,.18)"/>
+          <stop offset="0%" stop-color="rgba(255,245,238,.24)"/>
+          <stop offset="60%" stop-color="rgba(255,230,220,.10)"/>
           <stop offset="100%" stop-color="transparent"/>
         </radialGradient>
       </defs>
 
       <!-- ═══ MODERN OUTFIT ═══ -->
       <!-- Wide-leg trousers -->
-      <path d="M70 205 L94 205 L90 388 Q78 392 66 388 Q66 302 70 205Z" fill="url(#pantsG)"/>
-      <path d="M106 205 L130 205 L134 388 Q122 392 110 388 Q106 302 106 205Z" fill="url(#pantsG)"/>
-      <path d="M95 205 L105 205 L108 390 L92 390 Z" fill="#e7f4f4" opacity=".7"/>
+      <path d="M72 205 L95 205 L92 392 Q80 396 69 392 Q68 306 72 205Z" fill="url(#pantsG)"/>
+      <path d="M105 205 L128 205 L131 392 Q120 396 108 392 Q105 306 105 205Z" fill="url(#pantsG)"/>
+      <path d="M96 205 L104 205 L106 392 L94 392 Z" fill="#e7f4f4" opacity=".72"/>
       <!-- Blazer body -->
       <path d="M58 148 Q54 172 58 210 Q76 222 100 224 Q124 222 142 210 Q146 172 142 148 Q121 156 100 156 Q79 156 58 148Z"
             fill="url(#blazerG)"/>
@@ -1031,24 +1032,20 @@ body{
 
       <!-- ═══ ARMS ═══ -->
       <!-- Left arm -->
-      <path d="M58 155 Q35 185 30 218 Q38 222 46 218 Q52 188 68 162Z" fill="url(#skinG)"/>
-      <!-- Right arm (raised/waving) -->
-      <path d="M142 155 Q165 175 172 205 Q164 211 157 206 Q148 178 132 162Z"
-            fill="url(#skinG)"
-            style="transform-origin:142px 162px;animation:saraWave 3.5s ease-in-out infinite"/>
+      <path d="M60 158 Q48 196 50 236 Q56 240 62 236 Q64 198 74 164Z" fill="url(#skinG)"/>
+      <!-- Right arm -->
+      <path d="M140 158 Q152 196 150 236 Q144 240 138 236 Q136 198 126 164Z"
+            fill="url(#skinG)"/>
       <!-- Blazer sleeves -->
-      <path d="M58 152 Q36 180 34 214 Q41 217 47 214 Q52 186 70 160Z" fill="url(#blazerG)" opacity=".96"/>
-      <path d="M142 152 Q164 174 169 202 Q162 206 156 202 Q149 178 130 160Z"
-            fill="url(#blazerG)" opacity=".96"
-            style="transform-origin:142px 162px;animation:saraWave 3.5s ease-in-out infinite"/>
+      <path d="M58 152 Q44 190 48 230 Q55 233 61 230 Q64 194 74 160Z" fill="url(#blazerG)" opacity=".96"/>
+      <path d="M142 152 Q156 190 152 230 Q145 233 139 230 Q136 194 126 160Z"
+            fill="url(#blazerG)" opacity=".96"/>
       <!-- Bracelets -->
-      <ellipse cx="39" cy="216" rx="8" ry="4.5" fill="none" stroke="#d991a9" stroke-width="2.6"/>
-      <ellipse cx="164" cy="199" rx="8" ry="4.5" fill="none" stroke="#d991a9" stroke-width="2.6"
-               style="transform-origin:142px 162px;animation:saraWave 3.5s ease-in-out infinite"/>
+      <ellipse cx="56" cy="234" rx="7" ry="4.2" fill="none" stroke="#d991a9" stroke-width="2.4"/>
+      <ellipse cx="144" cy="234" rx="7" ry="4.2" fill="none" stroke="#d991a9" stroke-width="2.4"/>
       <!-- Hands -->
-      <ellipse cx="33" cy="222" rx="9" ry="8" fill="url(#skinG)"/>
-      <ellipse cx="168" cy="208" rx="9" ry="8" fill="url(#skinG)"
-               style="transform-origin:142px 162px;animation:saraWave 3.5s ease-in-out infinite"/>
+      <ellipse cx="56" cy="240" rx="8" ry="7" fill="url(#skinG)"/>
+      <ellipse cx="144" cy="240" rx="8" ry="7" fill="url(#skinG)"/>
 
       <!-- ═══ NECK ═══ -->
       <rect x="88" y="118" width="24" height="24" rx="12" fill="url(#skinG)"/>
@@ -1062,14 +1059,15 @@ body{
 
       <!-- ═══ HEAD ═══ -->
       <!-- Neck shadow -->
-      <ellipse cx="100" cy="120" rx="14" ry="4" fill="rgba(118,78,55,.18)"/>
+      <ellipse cx="100" cy="120" rx="14" ry="4" fill="rgba(170,122,98,.12)"/>
       <!-- Head -->
       <ellipse cx="100" cy="82" rx="44" ry="48" fill="url(#skinG)"/>
-      <ellipse cx="92" cy="74" rx="28" ry="24" fill="url(#faceGlow)"/>
+      <ellipse cx="92" cy="72" rx="32" ry="28" fill="url(#faceGlow)"/>
       <!-- Face shading -->
-      <ellipse cx="100" cy="92" rx="40" ry="38" fill="rgba(116,78,59,.08)"/>
+      <ellipse cx="100" cy="92" rx="40" ry="38" fill="rgba(160,111,88,.05)"/>
       <ellipse cx="68" cy="98" rx="14" ry="9" fill="url(#cheekLight)"/>
       <ellipse cx="132" cy="98" rx="14" ry="9" fill="url(#cheekLight)"/>
+      <ellipse cx="100" cy="82" rx="18" ry="12" fill="rgba(255,247,241,.14)"/>
 
       <!-- ═══ HAIR ═══ -->
       <!-- Back hair bulk -->
@@ -1083,7 +1081,7 @@ body{
       <!-- Side hair right -->
       <path d="M144 68 Q150 96 144 132 Q138 124 136 96 Q139 82 144 68Z" fill="url(#hairG)"/>
       <!-- Low ponytail -->
-      <path d="M95 128 Q88 172 94 222 Q100 236 108 222 Q114 172 105 128Z" fill="url(#hairG)" opacity=".96"/>
+      <path d="M95 128 Q92 178 96 236 Q100 246 104 236 Q108 178 105 128Z" fill="url(#hairG)" opacity=".92"/>
 
       <!-- ═══ EARRINGS ═══ -->
       <!-- Left earring -->
@@ -1138,13 +1136,13 @@ body{
       <ellipse cx="132" cy="98" rx="13" ry="8" fill="url(#blushG)"/>
 
       <!-- ═══ FEET / SHOES ═══ -->
-      <ellipse cx="84"  cy="392" rx="14" ry="7" fill="#f1e8e1"/>
-      <ellipse cx="116" cy="392" rx="14" ry="7" fill="#f1e8e1"/>
-      <path d="M73 388 Q84 384 95 388" fill="none" stroke="#d5c6bf" stroke-width="2"/>
-      <path d="M105 388 Q116 384 127 388" fill="none" stroke="#d5c6bf" stroke-width="2"/>
+      <ellipse cx="82"  cy="394" rx="13" ry="7" fill="#f7f1ec"/>
+      <ellipse cx="118" cy="394" rx="13" ry="7" fill="#f7f1ec"/>
+      <path d="M72 390 Q82 386 92 390" fill="none" stroke="#d5c6bf" stroke-width="2"/>
+      <path d="M108 390 Q118 386 128 390" fill="none" stroke="#d5c6bf" stroke-width="2"/>
 
       <style>
-        @keyframes saraWave{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-18deg)}}
+        @keyframes saraWave{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-8deg)}}
       </style>
     </svg>
    </div>
