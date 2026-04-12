@@ -178,7 +178,6 @@ def lesson_hi():
 
 ---
 
-
 ## 🛡️ Privacy
 
 - **All data stays on your computer.** Sara stores your profile in `sara_profile.json` locally.
