@@ -27,25 +27,31 @@ HTML_PAGE = r"""<!doctype html>
    DESIGN TOKENS
 ════════════════════════════════════════════════════════════ */
 :root{
-  /* Room palette — warm jewel tones */
-  --wall-a:#f5e6c8; --wall-b:#f0dbb8; --wall-c:#e8d0a8;
-  --floor-a:#c8934a; --floor-b:#a87030; --floor-c:#8a5a20;
-  --sky-a:#87ceeb;  --sky-b:#b8e4f8;  --sky-c:#d4f0ff;
-  --grass-a:#5caa60;--grass-b:#44884a;
+  /* Room palette — airy peach studio */
+  --wall-a:#fff4ea; --wall-b:#f8e7d7; --wall-c:#efd7c6;
+  --floor-a:#d9b184; --floor-b:#ba8a5f; --floor-c:#936748;
+  --sky-a:#88d8ff;  --sky-b:#cdefff;  --sky-c:#f6fdff;
+  --grass-a:#74c67a;--grass-b:#4e9f59;
   /* Accent palette */
-  --coral:#e8614a;  --teal:#2eb8a0;   --violet:#7c5cbf;
-  --gold:#f0a830;   --rose:#e05080;   --mint:#48c898;
-  --amber:#f08020; --sky:#3498db;
+  --coral:#ef7c6d;  --teal:#52b8b0;   --violet:#7e74d8;
+  --gold:#ecb45b;   --rose:#ef7d9d;   --mint:#69c9a2;
+  --amber:#e89a4a; --sky:#4c9ad9;
   /* UI */
-  --panel-bg:#1a0e2e; --panel-2:#231540;
-  --text-light:#f8f0ff; --text-mute:#9988bb;
-  --card-bg:rgba(255,255,255,.06); --card-border:rgba(255,255,255,.1);
-  --accent:#a070ff; --accent2:#ff7eb3;
+  --panel-bg:#fffaf6; --panel-2:#fff1e8;
+  --text-light:#35263d; --text-mute:#8d778d;
+  --card-bg:rgba(255,255,255,.72); --card-border:rgba(210,170,190,.28);
+  --accent:#e77aa0; --accent2:#6db8c8;
   --r:18px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
-body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text-light)}
+body{
+  font-family:'Nunito',sans-serif;
+  background:
+    radial-gradient(circle at top left,rgba(255,214,224,.75),transparent 30%),
+    linear-gradient(135deg,#fffaf7 0%,#fff3ee 48%,#f7efe9 100%);
+  color:var(--text-light);
+}
 
 /* ════════════════════════════════════════════════════════════
    APP SHELL
@@ -57,7 +63,9 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
 ════════════════════════════════════════════════════════════ */
 .room-wrap{
   position:relative;overflow:hidden;
-  background:linear-gradient(160deg,#1a0e2e 0%,#120820 100%);
+  background:
+    radial-gradient(circle at 20% 18%,rgba(255,226,214,.9),transparent 22%),
+    linear-gradient(160deg,#fff6f0 0%,#fde8e1 52%,#f8ddd3 100%);
 }
 
 /* ─── 3-D ROOM BOX ─── */
@@ -506,10 +514,10 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
   position:absolute;bottom:-8px;left:50%;
   transform:translateX(-50%);
   width:100px;height:18px;
-  background:radial-gradient(ellipse,rgba(42,20,10,.4),transparent 70%);
+  background:radial-gradient(ellipse,rgba(148,97,73,.28),transparent 70%);
   border-radius:50%;
 }
-.sara-svg{width:180px;filter:drop-shadow(0 20px 40px rgba(180,60,120,.3))}
+.sara-svg{width:188px;filter:drop-shadow(0 24px 42px rgba(227,125,157,.24))}
 
 /* ─── SPEECH BUBBLE ─── */
 .speech{
@@ -517,13 +525,13 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
   left:calc(50% + 100px);
   bottom:calc(33% + 200px);
   max-width:200px;
-  background:rgba(255,252,250,.97);
-  border:1.5px solid rgba(220,160,200,.4);
+  background:rgba(255,255,255,.88);
+  border:1.5px solid rgba(233,173,193,.55);
   border-radius:20px 20px 20px 4px;
   padding:13px 15px;
   font-size:.78rem;line-height:1.65;
-  color:#3a1a30;
-  box-shadow:0 20px 50px rgba(160,60,120,.2);
+  color:#5c3e54;
+  box-shadow:0 20px 50px rgba(227,125,157,.16);
   z-index:11;
   animation:popIn .5s cubic-bezier(.34,1.56,.64,1);
   backdrop-filter:blur(10px);
@@ -532,22 +540,22 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
   content:'';position:absolute;
   bottom:-1px;left:-10px;
   border:8px solid transparent;
-  border-right-color:rgba(220,160,200,.4);
-  border-bottom-color:rgba(220,160,200,.4);
+  border-right-color:rgba(233,173,193,.55);
+  border-bottom-color:rgba(233,173,193,.55);
 }
 @keyframes popIn{from{opacity:0;transform:scale(.7) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
 
 /* ─── ROOM OVERLAYS ─── */
 .room-vignette{
   position:absolute;inset:0;
-  background:radial-gradient(ellipse at 50% 40%,transparent 35%,rgba(15,8,30,.55) 100%);
+  background:radial-gradient(ellipse at 50% 40%,transparent 36%,rgba(150,103,109,.12) 100%);
   pointer-events:none;z-index:20;
 }
 .room-border{
   position:absolute;inset:0;
-  border:20px solid rgba(15,8,30,.6);
+  border:20px solid rgba(255,250,245,.62);
   pointer-events:none;z-index:21;
-  box-shadow:inset 0 0 80px rgba(0,0,0,.35);
+  box-shadow:inset 0 0 80px rgba(177,126,123,.16);
 }
 
 /* ─── ROOM HEADER ─── */
@@ -557,20 +565,20 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
   z-index:22;
 }
 .rbadge{
-  background:rgba(10,5,25,.75);
-  color:#e8d8ff;
+  background:rgba(255,255,255,.68);
+  color:#7b5b71;
   padding:8px 16px;border-radius:999px;
   font-size:.75rem;font-weight:700;letter-spacing:.06em;
   backdrop-filter:blur(16px);
-  border:1px solid rgba(160,100,255,.2);
+  border:1px solid rgba(224,170,191,.42);
 }
 .rclock{
-  background:rgba(10,5,25,.75);
-  color:#e8d8ff;
+  background:rgba(255,255,255,.68);
+  color:#7b5b71;
   padding:8px 18px;border-radius:999px;
   font:.75rem/1 'Playfair Display',serif;
   backdrop-filter:blur(16px);
-  border:1px solid rgba(160,100,255,.2);
+  border:1px solid rgba(224,170,191,.42);
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -579,7 +587,7 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
 .panel{
   display:flex;flex-direction:column;
   background:var(--panel-bg);
-  border-left:1px solid rgba(160,100,255,.12);
+  border-left:1px solid rgba(230,188,202,.42);
   overflow:hidden;
   position:relative;
 }
@@ -587,21 +595,21 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
 .panel::before{
   content:'';position:absolute;inset:0;
   background:
-    radial-gradient(ellipse at 80% 10%,rgba(160,80,255,.08),transparent 60%),
-    radial-gradient(ellipse at 20% 90%,rgba(255,80,180,.06),transparent 60%);
+    radial-gradient(ellipse at 80% 10%,rgba(231,122,160,.12),transparent 60%),
+    radial-gradient(ellipse at 20% 90%,rgba(109,184,200,.12),transparent 60%);
   pointer-events:none;
 }
 
 /* Panel header */
 .p-head{
   padding:18px 20px 14px;
-  border-bottom:1px solid rgba(160,100,255,.12);
+  border-bottom:1px solid rgba(230,188,202,.42);
   position:relative;z-index:1;
 }
 .p-title{
   font-family:'Playfair Display',serif;
   font-size:1.6rem;
-  background:linear-gradient(135deg,#d0a0ff,#ff90c0);
+  background:linear-gradient(135deg,#d76d95,#f2a177);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   line-height:1;
 }
@@ -625,28 +633,30 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
 /* Check-in banner */
 .ci-banner{
   margin:12px 20px 0;
-  background:linear-gradient(135deg,#2d1060,#4a1890);
-  border:1px solid rgba(160,100,255,.25);
+  background:linear-gradient(135deg,rgba(255,236,228,.95),rgba(255,245,240,.96));
+  border:1px solid rgba(230,188,202,.5);
   border-radius:16px;padding:14px 16px;
   position:relative;z-index:1;
+  box-shadow:0 14px 28px rgba(213,151,158,.12);
 }
-.ci-banner strong{font-size:.82rem;color:#d8b8ff;letter-spacing:.03em}
-.ci-text{font-size:.76rem;margin-top:4px;color:#b090d8;line-height:1.55}
+.ci-banner strong{font-size:.82rem;color:#b56485;letter-spacing:.03em}
+.ci-text{font-size:.76rem;margin-top:4px;color:#8b6e82;line-height:1.55}
 .mood-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
 .mood-btn{
   padding:6px 13px;border-radius:999px;
-  border:1px solid rgba(200,150,255,.3);
-  background:rgba(200,150,255,.1);
-  color:#e0c8ff;
+  border:1px solid rgba(230,188,202,.6);
+  background:rgba(255,255,255,.7);
+  color:#9c647f;
   font:700 .72rem 'Nunito',sans-serif;
   cursor:pointer;transition:all .2s;
+  box-shadow:0 8px 18px rgba(222,166,181,.12);
 }
-.mood-btn:hover{background:rgba(200,150,255,.25);border-color:rgba(200,150,255,.5)}
+.mood-btn:hover{background:#fff;border-color:#d889aa}
 
 /* ─── LANG TOGGLE ─── */
 .lang-row{
   display:flex;gap:8px;padding:10px 20px;
-  border-bottom:1px solid rgba(160,100,255,.08);
+  border-bottom:1px solid rgba(230,188,202,.32);
   position:relative;z-index:1;align-items:center;
 }
 .lang-label{font-size:.72rem;color:var(--text-mute);font-weight:700;letter-spacing:.04em;margin-right:4px}
@@ -656,7 +666,7 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
   cursor:pointer;transition:all .2s;border:1px solid;
 }
 .lang-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
-.lang-btn:not(.active){background:transparent;border-color:rgba(160,100,255,.25);color:var(--text-mute)}
+.lang-btn:not(.active){background:rgba(255,255,255,.66);border-color:rgba(230,188,202,.5);color:var(--text-mute)}
 .voice-indicator{
   margin-left:auto;display:flex;align-items:center;gap:6px;
   font-size:.72rem;color:var(--text-mute);
@@ -680,7 +690,7 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
 
 /* Profile form */
 .intro-card{
-  font-size:.8rem;color:#b090d8;line-height:1.65;
+  font-size:.8rem;color:#8b6e82;line-height:1.65;
   margin-bottom:14px;
   padding:12px 14px;
   background:var(--card-bg);
@@ -689,27 +699,27 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
 }
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .fg-full{grid-column:1/-1}
-.flabel{display:block;font-size:.7rem;font-weight:800;color:#a080d0;letter-spacing:.05em;margin-bottom:5px}
+.flabel{display:block;font-size:.7rem;font-weight:800;color:#a96d88;letter-spacing:.05em;margin-bottom:5px}
 .finput,.ftextarea{
   width:100%;
   font:400 .8rem 'Nunito',sans-serif;
-  background:rgba(255,255,255,.04);
-  border:1.5px solid rgba(160,100,255,.18);
+  background:rgba(255,255,255,.8);
+  border:1.5px solid rgba(230,188,202,.5);
   border-radius:10px;padding:10px 12px;
   color:var(--text-light);transition:border-color .2s,background .2s;outline:none;
 }
-.finput::placeholder,.ftextarea::placeholder{color:rgba(200,180,255,.3)}
-.finput:focus,.ftextarea:focus{border-color:var(--accent);background:rgba(160,100,255,.06)}
+.finput::placeholder,.ftextarea::placeholder{color:rgba(144,120,138,.55)}
+.finput:focus,.ftextarea:focus{border-color:var(--accent);background:#fff}
 .ftextarea{resize:vertical;min-height:64px}
 .btn-save{
   width:100%;padding:13px;
-  background:linear-gradient(135deg,#6020c0,#a050f0,#c060d8);
+  background:linear-gradient(135deg,#e77aa0,#f0a37c,#7ac6c7);
   color:#fff;border:none;border-radius:12px;
   font:800 .88rem 'Nunito',sans-serif;
   cursor:pointer;margin-top:4px;
   transition:opacity .2s,transform .1s;
   letter-spacing:.03em;
-  box-shadow:0 8px 24px rgba(160,60,255,.3);
+  box-shadow:0 12px 24px rgba(228,140,148,.24);
 }
 .btn-save:hover{opacity:.9}
 .btn-save:active{transform:scale(.97)}
@@ -726,7 +736,7 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
   color:var(--text-light);
 }
 .bbl-user{
-  background:linear-gradient(135deg,#6020c0,#a050f0);
+  background:linear-gradient(135deg,#e77aa0,#f0a37c);
   color:#fff;border-radius:14px 4px 14px 14px;align-self:flex-end;
 }
 
@@ -736,21 +746,21 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
   background:var(--card-bg);border:1px solid var(--card-border);
   border-radius:12px;padding:11px 13px;
 }
-.scard-title{font-size:.67rem;font-weight:800;color:#a080d0;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
+.scard-title{font-size:.67rem;font-weight:800;color:#a96d88;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
 .scard-body{font-size:.77rem;color:var(--text-mute);line-height:1.5}
 
 /* Tool row */
 .tool-row{
   display:flex;gap:7px;flex-wrap:wrap;
   padding:10px 20px;
-  border-top:1px solid rgba(160,100,255,.08);
+  border-top:1px solid rgba(230,188,202,.32);
   position:relative;z-index:1;
 }
 .tool-btn{
   padding:6px 13px;border-radius:999px;
-  border:1px solid rgba(160,100,255,.25);
-  background:rgba(160,100,255,.06);
-  color:#c090ff;
+  border:1px solid rgba(230,188,202,.5);
+  background:rgba(255,255,255,.7);
+  color:#a96d88;
   font:700 .72rem 'Nunito',sans-serif;
   cursor:pointer;transition:all .2s;
 }
@@ -759,38 +769,62 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
 /* Compose bar */
 .compose{
   padding:10px 20px 14px;
-  border-top:1px solid rgba(160,100,255,.1);
-  background:rgba(255,255,255,.02);
+  border-top:1px solid rgba(230,188,202,.35);
+  background:rgba(255,250,247,.9);
   display:grid;grid-template-columns:1fr auto auto auto;
   gap:8px;align-items:end;
   position:relative;z-index:1;
 }
 .c-input{
   font:400 .82rem 'Nunito',sans-serif;
-  background:rgba(255,255,255,.05);
-  border:1.5px solid rgba(160,100,255,.18);
+  background:#fff;
+  border:1.5px solid rgba(230,188,202,.5);
   border-radius:12px;padding:10px 14px;
   resize:none;min-height:42px;max-height:110px;
   outline:none;color:var(--text-light);
   transition:border-color .2s;
+  box-shadow:0 12px 24px rgba(227,176,186,.1);
 }
-.c-input::placeholder{color:rgba(200,180,255,.3)}
+.c-input::placeholder{color:rgba(144,120,138,.55)}
 .c-input:focus{border-color:var(--accent)}
 .c-btn{
   width:42px;height:42px;border-radius:11px;
   display:grid;place-items:center;font-size:1rem;
   cursor:pointer;transition:all .2s;border:none;
 }
-.c-btn-ghost{background:rgba(255,255,255,.05);color:#a090c0;border:1.5px solid rgba(160,100,255,.18)}
-.c-btn-ghost:hover{background:rgba(160,100,255,.15);color:#d0b0ff}
+.c-btn-ghost{background:rgba(255,255,255,.92);color:#a96d88;border:1.5px solid rgba(230,188,202,.5)}
+.c-btn-ghost:hover{background:#fff0f4;color:#d46f97}
 .c-btn-ghost.active-listen{background:rgba(255,120,50,.2);border-color:rgba(255,120,50,.4);color:#ff9060;animation:listenPulse 1s ease-in-out infinite}
 @keyframes listenPulse{50%{background:rgba(255,120,50,.35)}}
-.c-btn-send{background:linear-gradient(135deg,#7030d0,#c060e0);color:#fff}
+.c-btn-send{background:linear-gradient(135deg,#e77aa0,#7ac6c7);color:#fff}
 .c-btn-send:hover{opacity:.88;transform:scale(1.05)}
 .c-btn-send:active{transform:scale(.93)}
 
-.foot{text-align:center;font-size:.68rem;color:rgba(160,140,200,.4);padding:7px;position:relative;z-index:1}
+.foot{text-align:center;font-size:.68rem;color:rgba(143,114,134,.5);padding:7px;position:relative;z-index:1}
 .hide{display:none!important}
+
+@media (max-width: 980px){
+  html,body{overflow:auto}
+  .app{grid-template-columns:1fr;height:auto;min-height:100vh}
+  .room-wrap{min-height:70vh}
+  .panel{min-height:30vh}
+}
+
+@media (max-width: 700px){
+  .room-wrap{min-height:62vh}
+  .window-outer{width:42%}
+  .bookshelf{width:24%}
+  .desk-wrap{width:74%}
+  .avatar-wrap{bottom:29%}
+  .sara-svg{width:164px}
+  .speech{
+    left:50%;
+    bottom:calc(29% + 176px);
+    transform:translateX(-12%);
+    max-width:170px;
+  }
+  .compose{grid-template-columns:1fr auto auto}
+}
 </style>
 </head>
 <body>
@@ -929,36 +963,37 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
     -->
     <svg class="sara-svg" viewBox="0 0 200 420" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <!-- Lehenga gradient - vibrant teal + gold -->
+        <!-- Lehenga gradient - soft pastel modern palette -->
         <linearGradient id="lehengaG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#00b8a0"/>
-          <stop offset="40%" stop-color="#0090b0"/>
-          <stop offset="100%" stop-color="#006080"/>
+          <stop offset="0%" stop-color="#8fd8d2"/>
+          <stop offset="40%" stop-color="#68b8c5"/>
+          <stop offset="100%" stop-color="#4d8fb0"/>
         </linearGradient>
-        <!-- Choli (blouse) gradient - coral -->
+        <!-- Choli (blouse) gradient -->
         <linearGradient id="choliG" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#ff7060"/>
-          <stop offset="100%" stop-color="#e04040"/>
+          <stop offset="0%" stop-color="#f8b0a5"/>
+          <stop offset="100%" stop-color="#e7838b"/>
         </linearGradient>
         <!-- Dupatta gradient -->
         <linearGradient id="dupattaG" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#ff60a0"/>
-          <stop offset="100%" stop-color="#c030c0"/>
+          <stop offset="0%" stop-color="#ffd5dc"/>
+          <stop offset="100%" stop-color="#e88ab2"/>
         </linearGradient>
         <!-- Skin tone -->
         <linearGradient id="skinG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#f8c898"/>
-          <stop offset="100%" stop-color="#e8a870"/>
+          <stop offset="0%" stop-color="#ffe7d7"/>
+          <stop offset="55%" stop-color="#f8d4c4"/>
+          <stop offset="100%" stop-color="#efbea9"/>
         </linearGradient>
         <!-- Hair -->
         <linearGradient id="hairG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#1a0e08"/>
-          <stop offset="100%" stop-color="#0a0604"/>
+          <stop offset="0%" stop-color="#3f2a27"/>
+          <stop offset="100%" stop-color="#241615"/>
         </linearGradient>
         <!-- Gold jewelry -->
         <linearGradient id="goldG" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#ffd060"/>
-          <stop offset="100%" stop-color="#e0a020"/>
+          <stop offset="0%" stop-color="#ffd995"/>
+          <stop offset="100%" stop-color="#e4ab55"/>
         </linearGradient>
         <!-- Lehenga pattern overlay -->
         <pattern id="lehengaPat" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -967,7 +1002,11 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
           <circle cx="20" cy="20" r="1" fill="rgba(255,215,0,.15)"/>
         </pattern>
         <radialGradient id="blushG" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="rgba(220,100,100,.35)"/>
+          <stop offset="0%" stop-color="rgba(236,150,156,.34)"/>
+          <stop offset="100%" stop-color="transparent"/>
+        </radialGradient>
+        <radialGradient id="faceGlow" cx="45%" cy="35%" r="65%">
+          <stop offset="0%" stop-color="rgba(255,255,255,.34)"/>
           <stop offset="100%" stop-color="transparent"/>
         </radialGradient>
       </defs>
@@ -978,7 +1017,7 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
             fill="url(#lehengaG)"/>
       <!-- Pattern overlay -->
       <path d="M58 200 Q30 260 18 360 Q50 385 100 388 Q150 385 182 360 Q170 260 142 200 Z"
-            fill="url(#lehengaPat)" opacity=".9"/>
+            fill="url(#lehengaPat)" opacity=".55"/>
       <!-- Skirt border / hem -->
       <path d="M18 360 Q50 385 100 388 Q150 385 182 360"
             fill="none" stroke="#ffd060" stroke-width="6"/>
@@ -999,10 +1038,10 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
       <!-- ═══ DUPATTA (draped scarf) ═══ -->
       <!-- Over left shoulder flowing down -->
       <path d="M55 148 Q20 190 16 280 Q10 300 20 320" fill="none"
-            stroke="url(#dupattaG)" stroke-width="14" stroke-linecap="round" opacity=".85"/>
+            stroke="url(#dupattaG)" stroke-width="14" stroke-linecap="round" opacity=".92"/>
       <!-- Dupatta over right, floating end -->
       <path d="M145 148 Q170 180 175 240 Q178 270 168 310"
-            fill="none" stroke="url(#dupattaG)" stroke-width="10" stroke-linecap="round" opacity=".7"
+            fill="none" stroke="url(#dupattaG)" stroke-width="10" stroke-linecap="round" opacity=".82"
             style="animation:dupattaWave 4s ease-in-out infinite"/>
       <!-- Dupatta decorative border -->
       <path d="M55 148 Q20 190 16 280" fill="none"
@@ -1048,17 +1087,18 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
       <circle cx="85"  cy="158" r="3" fill="url(#goldG)"/>
       <circle cx="115" cy="158" r="3" fill="url(#goldG)"/>
       <!-- necklace pendants -->
-      <ellipse cx="100" cy="169" rx="4" ry="5" fill="#00d0b8"/>
-      <ellipse cx="85"  cy="163" rx="3" ry="4" fill="#ff6080"/>
-      <ellipse cx="115" cy="163" rx="3" ry="4" fill="#ff6080"/>
+      <ellipse cx="100" cy="169" rx="4" ry="5" fill="#77c9c0"/>
+      <ellipse cx="85"  cy="163" rx="3" ry="4" fill="#f197af"/>
+      <ellipse cx="115" cy="163" rx="3" ry="4" fill="#f197af"/>
 
       <!-- ═══ HEAD ═══ -->
       <!-- Neck shadow -->
       <ellipse cx="100" cy="120" rx="14" ry="4" fill="rgba(180,100,60,.15)"/>
       <!-- Head -->
       <ellipse cx="100" cy="82" rx="44" ry="48" fill="url(#skinG)"/>
+      <ellipse cx="92" cy="74" rx="28" ry="24" fill="url(#faceGlow)"/>
       <!-- Face shading -->
-      <ellipse cx="100" cy="90" rx="40" ry="38" fill="rgba(240,160,100,.08)"/>
+      <ellipse cx="100" cy="90" rx="40" ry="38" fill="rgba(240,182,155,.10)"/>
 
       <!-- ═══ HAIR ═══ -->
       <!-- Back hair bulk -->
@@ -1066,21 +1106,21 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
       <!-- Front hair parting -->
       <path d="M56 68 Q58 36 100 28 Q142 36 144 68 Q132 50 100 48 Q68 50 56 68Z" fill="url(#hairG)"/>
       <!-- Hair highlight -->
-      <path d="M60 62 Q62 44 80 38" fill="none" stroke="rgba(80,40,20,.4)" stroke-width="3" stroke-linecap="round"/>
+      <path d="M60 62 Q62 44 80 38" fill="none" stroke="rgba(122,84,72,.28)" stroke-width="3" stroke-linecap="round"/>
       <!-- Side hair left -->
       <path d="M56 68 Q48 88 50 118 Q56 112 60 96 Q58 82 56 68Z" fill="url(#hairG)"/>
       <!-- Side hair right -->
       <path d="M144 68 Q152 88 150 118 Q144 112 140 96 Q142 82 144 68Z" fill="url(#hairG)"/>
 
       <!-- ═══ BINDI ═══ -->
-      <circle cx="100" cy="54" r="4" fill="#e03060"/>
-      <circle cx="100" cy="54" r="2" fill="#ff6080"/>
+      <circle cx="100" cy="54" r="4" fill="#d86284"/>
+      <circle cx="100" cy="54" r="2" fill="#ffced7"/>
 
       <!-- ═══ HAIR BUN with flowers ═══ -->
       <circle cx="100" cy="28" r="18" fill="url(#hairG)"/>
       <circle cx="100" cy="28" r="13" fill="#2a1810"/>
       <!-- Bun flowers -->
-      <g fill="#ff6090" opacity=".9">
+      <g fill="#f8a8be" opacity=".95">
         <circle cx="94" cy="14" r="4"/>
         <circle cx="106" cy="14" r="4"/>
         <circle cx="88" cy="22" r="3.5"/>
@@ -1100,11 +1140,11 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
       <!-- ═══ EARRINGS ═══ -->
       <!-- Left earring -->
       <circle cx="56" cy="90" r="5" fill="url(#goldG)"/>
-      <ellipse cx="56" cy="98" rx="4" ry="5" fill="#00d0b8"/>
+      <ellipse cx="56" cy="98" rx="4" ry="5" fill="#77c9c0"/>
       <ellipse cx="56" cy="105" rx="3" ry="4" fill="url(#goldG)"/>
       <!-- Right earring -->
       <circle cx="144" cy="90" r="5" fill="url(#goldG)"/>
-      <ellipse cx="144" cy="98" rx="4" ry="5" fill="#00d0b8"/>
+      <ellipse cx="144" cy="98" rx="4" ry="5" fill="#77c9c0"/>
       <ellipse cx="144" cy="105" rx="3" ry="4" fill="url(#goldG)"/>
 
       <!-- ═══ FACE FEATURES ═══ -->
@@ -1137,14 +1177,14 @@ body{font-family:'Nunito',sans-serif;background:var(--panel-bg);color:var(--text
       <path d="M70 76 Q82 70 94 74" stroke="#2a1008" stroke-width="3.5" stroke-linecap="round" fill="none"/>
       <path d="M106 74 Q118 70 130 76" stroke="#2a1008" stroke-width="3.5" stroke-linecap="round" fill="none"/>
       <!-- Nose (delicate) -->
-      <path d="M96 98 Q100 108 104 98" stroke="#c87848" stroke-width="2" stroke-linecap="round" fill="none"/>
-      <circle cx="94" cy="100" r="2.5" fill="rgba(180,100,60,.2)"/>
-      <circle cx="106" cy="100" r="2.5" fill="rgba(180,100,60,.2)"/>
+      <path d="M96 98 Q100 108 104 98" stroke="#d09a83" stroke-width="2" stroke-linecap="round" fill="none"/>
+      <circle cx="94" cy="100" r="2.5" fill="rgba(196,141,120,.14)"/>
+      <circle cx="106" cy="100" r="2.5" fill="rgba(196,141,120,.14)"/>
       <!-- Nose ring (nath) - small gold ring on left nostril -->
       <circle cx="94" cy="101" r="2.5" fill="none" stroke="#ffd060" stroke-width="1.2"/>
       <!-- Lips -->
-      <path d="M84 116 Q100 122 116 116" fill="#d85060"/>
-      <path d="M84 116 Q100 111 116 116" fill="#e86878"/>
+      <path d="M84 116 Q100 122 116 116" fill="#d97d8f"/>
+      <path d="M84 116 Q100 111 116 116" fill="#ef9fb1"/>
       <!-- Lip shine -->
       <path d="M90 114 Q100 111 110 114" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.5" stroke-linecap="round"/>
       <!-- Cheek blush -->
