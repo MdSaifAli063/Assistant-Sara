@@ -185,7 +185,6 @@ def lesson_hi():
 
 ---
 
-
 ## ❓ Troubleshooting
 
 **Sara's voice is not working:**
