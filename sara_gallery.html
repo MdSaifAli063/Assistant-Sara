@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sara's Gallery - Multiple Scenes</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Nunito:wght@300;400;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            color: #fff;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #f0a0a6, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        p {
+            font-size: 1.1rem;
+            color: #bbb;
+            margin-bottom: 30px;
+        }
+
+        .scenes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .scene-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(240, 160, 166, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            transform: translateY(0);
+        }
+
+        .scene-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(240, 160, 166, 0.5);
+        }
+
+        .scene-preview {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #f5f0e8, #ede6dd);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .scene-info {
+            padding: 25px;
+        }
+
+        .scene-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .scene-description {
+            font-size: 0.95rem;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .scene-button {
+            display: inline-block;
+            padding: 10px 25px;
+            background: linear-gradient(135deg, #f0a0a6, #ffd700);
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .scene-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(240, 160, 166, 0.4);
+        }
+
+        .main-room {
+            background: linear-gradient(135deg, #ff7675, #ffd700);
+        }
+
+        .library {
+            background: linear-gradient(135deg, #8b6a4a, #d4a574);
+        }
+
+        .garden {
+            background: linear-gradient(135deg, #4CAF50, #81C784);
+        }
+
+        .study {
+            background: linear-gradient(135deg, #4a90e2, #64b5f6);
+        }
+
+        footer {
+            text-align: center;
+            color: #aaa;
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .scenes-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>✨ Sara's Gallery</h1>
+            <p>Explore Sara in different Ghibli-inspired scenes and settings</p>
+        </header>
+
+        <div class="scenes-grid">
+            <!-- Main Room Scene -->
+            <div class="scene-card">
+                <div class="scene-preview main-room">
+                    🌸
+                </div>
+                <div class="scene-info">
+                    <div class="scene-title">Sara's Room</div>
+                    <div class="scene-description">
+                        The original cozy room where Sara greets you with warmth, care, and daily check-ins.
+                    </div>
+                    <a href="http://127.0.0.1:8010" class="scene-button">Visit Room</a>
+                </div>
+            </div>
+
+            <!-- Quiet Study Scene -->
+            <div class="scene-card">
+                <div class="scene-preview study">
+                    📚
+                </div>
+                <div class="scene-info">
+                    <div class="scene-title">Study Companion</div>
+                    <div class="scene-description">
+                        Sara in her study setting, ready to help you focus, learn, and achieve your goals together.
+                    </div>
+                    <a href="#coming-soon" class="scene-button">Coming Soon</a>
+                </div>
+            </div>
+
+            <!-- Library Scene -->
+            <div class="scene-card">
+                <div class="scene-preview library">
+                    🏛️
+                </div>
+                <div class="scene-info">
+                    <div class="scene-title">Library Setting</div>
+                    <div class="scene-description">
+                        Surrounded by books and calm wisdom, Sara shares knowledge and encourages your curiosity.
+                    </div>
+                    <a href="#coming-soon" class="scene-button">Coming Soon</a>
+                </div>
+            </div>
+
+            <!-- Garden Scene -->
+            <div class="scene-card">
+                <div class="scene-preview garden">
+                    🌼
+                </div>
+                <div class="scene-info">
+                    <div class="scene-title">Garden Moments</div>
+                    <div class="scene-description">
+                        In a peaceful garden setting, Sara brings nature's calm and refreshing perspective to your day.
+                    </div>
+                    <a href="#coming-soon" class="scene-button">Coming Soon</a>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Sara's Gallery · Studio Ghibli Inspired · Multiple Scenes Coming Soon</p>
+            <p style="font-size: 0.85rem; margin-top: 15px;">
+                🎨 All scenes feature the same Ghibli-style Sara with warm, caring interactions
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        document.querySelectorAll('.scene-button[href="#coming-soon"]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('🚀 New scenes coming soon!\n\nUpcoming:\n📚 Study Companion\n🏛️ Library Setting\n🌼 Garden Moments\n\nStay tuned! ✨');
+            });
+        });
+    </script>
+</body>
+
+</html>
