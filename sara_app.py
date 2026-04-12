@@ -501,37 +501,39 @@ body{
 
 /* ─── SARA AVATAR ─── */
 .avatar-wrap{
-  position:absolute;left:50%;bottom:27%;
-  transform:translateX(-50%);
+  position:absolute;left:50%;bottom:24%;
+  transform:translateX(-50%) scale(1.28);
   z-index:10;
   animation:saraFloat 5s ease-in-out infinite;
+  filter:drop-shadow(0 28px 56px rgba(255,150,180,.32));
 }
 @keyframes saraFloat{
-  0%,100%{transform:translateX(-50%) translateY(0px)}
-  50%{transform:translateX(-50%) translateY(-12px)}
+  0%,100%{transform:translateX(-50%) scale(1.28) translateY(0px)}
+  50%{transform:translateX(-50%) scale(1.28) translateY(-14px)}
 }
 .avatar-shadow{
   position:absolute;bottom:-8px;left:50%;
   transform:translateX(-50%);
-  width:100px;height:18px;
-  background:radial-gradient(ellipse,rgba(148,97,73,.28),transparent 70%);
+  width:120px;height:22px;
+  background:radial-gradient(ellipse,rgba(100,100,150,.35),transparent 70%);
   border-radius:50%;
+  filter:blur(2px);
 }
-.sara-svg{width:198px;filter:drop-shadow(0 24px 42px rgba(227,125,157,.24))}
+.sara-svg{width:198px;filter:drop-shadow(0 24px 42px rgba(227,125,157,.28));}
 
 /* ─── SPEECH BUBBLE ─── */
 .speech{
   position:absolute;
-  left:calc(50% + 100px);
-  bottom:calc(33% + 200px);
+  left:calc(50% + 120px);
+  bottom:calc(33% + 220px);
   max-width:200px;
-  background:rgba(255,255,255,.88);
-  border:1.5px solid rgba(233,173,193,.55);
+  background:rgba(255,255,255,.92);
+  border:1.5px solid rgba(255,150,180,.45);
   border-radius:20px 20px 20px 4px;
   padding:13px 15px;
   font-size:.78rem;line-height:1.65;
   color:#5c3e54;
-  box-shadow:0 20px 50px rgba(227,125,157,.16);
+  box-shadow:0 20px 50px rgba(227,125,157,.2);
   z-index:11;
   animation:popIn .5s cubic-bezier(.34,1.56,.64,1);
   backdrop-filter:blur(10px);
@@ -963,40 +965,41 @@ body{
     -->
     <svg class="sara-svg" viewBox="0 0 200 420" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <!-- Modern trousers -->
+        <!-- Modern trousers - vibrant teal -->
         <linearGradient id="pantsG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#a7dde1"/>
-          <stop offset="45%" stop-color="#7fc3d2"/>
-          <stop offset="100%" stop-color="#5f96b7"/>
+          <stop offset="0%" stop-color="#4dd0e1"/>
+          <stop offset="45%" stop-color="#26c6da"/>
+          <stop offset="100%" stop-color="#00bcd4"/>
         </linearGradient>
-        <!-- Blazer -->
+        <!-- Modern gradient blazer - peachy to rose -->
         <linearGradient id="blazerG" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#f8d7df"/>
-          <stop offset="100%" stop-color="#e9a7b7"/>
+          <stop offset="0%" stop-color="#ffeaa7"/>
+          <stop offset="50%" stop-color="#fab1a0"/>
+          <stop offset="100%" stop-color="#ff7675"/>
         </linearGradient>
-        <!-- Inner top -->
+        <!-- Inner top - crisp white -->
         <linearGradient id="topG" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#fff9f7"/>
-          <stop offset="100%" stop-color="#f4ece7"/>
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="100%" stop-color="#f5f5f5"/>
         </linearGradient>
-        <!-- Skin tone -->
+        <!-- Skin tone - porcelain white -->
         <linearGradient id="skinG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#ffe3d4"/>
-          <stop offset="55%" stop-color="#f2c8b7"/>
-          <stop offset="100%" stop-color="#deac98"/>
+          <stop offset="0%" stop-color="#fef5f0"/>
+          <stop offset="55%" stop-color="#fce8e0"/>
+          <stop offset="100%" stop-color="#fcd5c8"/>
         </linearGradient>
-        <!-- Hair -->
+        <!-- Hair - light blonde with golden highlights -->
         <linearGradient id="hairG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#372120"/>
-          <stop offset="100%" stop-color="#1f1111"/>
+          <stop offset="0%" stop-color="#e8c895"/>
+          <stop offset="100%" stop-color="#d4a574"/>
         </linearGradient>
-        <!-- Metallic accents -->
+        <!-- Metallic golden accents -->
         <linearGradient id="metalG" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#f6dfad"/>
-          <stop offset="100%" stop-color="#d8a04d"/>
+          <stop offset="0%" stop-color="#ffd700"/>
+          <stop offset="100%" stop-color="#ffb347"/>
         </linearGradient>
         <radialGradient id="blushG" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="rgba(224,154,162,.22)"/>
+          <stop offset="0%" stop-color="rgba(255,105,180,.18)"/>
           <stop offset="100%" stop-color="transparent"/>
         </radialGradient>
         <radialGradient id="faceGlow" cx="45%" cy="35%" r="65%">
@@ -1040,9 +1043,9 @@ body{
       <path d="M58 152 Q44 190 48 230 Q55 233 61 230 Q64 194 74 160Z" fill="url(#blazerG)" opacity=".96"/>
       <path d="M142 152 Q156 190 152 230 Q145 233 139 230 Q136 194 126 160Z"
             fill="url(#blazerG)" opacity=".96"/>
-      <!-- Bracelets -->
-      <ellipse cx="56" cy="234" rx="7" ry="4.2" fill="none" stroke="#d991a9" stroke-width="2.4"/>
-      <ellipse cx="144" cy="234" rx="7" ry="4.2" fill="none" stroke="#d991a9" stroke-width="2.4"/>
+      <!-- Bracelets - modern golden -->
+      <ellipse cx="56" cy="234" rx="7" ry="4.2" fill="none" stroke="#ffd700" stroke-width="2.4"/>
+      <ellipse cx="144" cy="234" rx="7" ry="4.2" fill="none" stroke="#ffd700" stroke-width="2.4"/>
       <!-- Hands -->
       <ellipse cx="56" cy="240" rx="8" ry="7" fill="url(#skinG)"/>
       <ellipse cx="144" cy="240" rx="8" ry="7" fill="url(#skinG)"/>
@@ -1053,9 +1056,9 @@ body{
       <!-- ═══ ACCESSORIES ═══ -->
       <path d="M78 148 Q100 165 122 148" fill="none" stroke="url(#metalG)" stroke-width="2.6"/>
       <circle cx="100" cy="162" r="4" fill="url(#metalG)"/>
-      <ellipse cx="100" cy="169" rx="4" ry="5" fill="#77c9c0"/>
-      <ellipse cx="85"  cy="163" rx="3" ry="4" fill="#f197af"/>
-      <ellipse cx="115" cy="163" rx="3" ry="4" fill="#f197af"/>
+      <ellipse cx="100" cy="169" rx="4" ry="5" fill="#ff69b4"/>
+      <ellipse cx="85"  cy="163" rx="3" ry="4" fill="#ffd700"/>
+      <ellipse cx="115" cy="163" rx="3" ry="4" fill="#ffd700"/>
 
       <!-- ═══ HEAD ═══ -->
       <!-- Neck shadow -->
@@ -1075,7 +1078,7 @@ body{
       <!-- Smooth center-part front -->
       <path d="M56 68 Q58 34 100 28 Q142 34 144 68 Q132 48 100 46 Q68 48 56 68Z" fill="url(#hairG)"/>
       <!-- Hair highlight -->
-      <path d="M62 60 Q70 42 88 40" fill="none" stroke="rgba(201,170,150,.14)" stroke-width="3" stroke-linecap="round"/>
+      <path d="M62 60 Q70 42 88 40" fill="none" stroke="rgba(255,255,200,.25)" stroke-width="3" stroke-linecap="round"/>
       <!-- Side hair left -->
       <path d="M56 68 Q50 96 56 132 Q62 124 64 96 Q61 82 56 68Z" fill="url(#hairG)"/>
       <!-- Side hair right -->
@@ -1084,54 +1087,54 @@ body{
       <path d="M95 128 Q92 178 96 236 Q100 246 104 236 Q108 178 105 128Z" fill="url(#hairG)" opacity=".92"/>
 
       <!-- ═══ EARRINGS ═══ -->
-      <!-- Left earring -->
+      <!-- Left earring - modern golden drops -->
       <circle cx="56" cy="90" r="5" fill="url(#metalG)"/>
-      <ellipse cx="56" cy="98" rx="4" ry="5" fill="#77c9c0"/>
+      <ellipse cx="56" cy="98" rx="4" ry="5" fill="#ffd700"/>
       <ellipse cx="56" cy="105" rx="3" ry="4" fill="url(#metalG)"/>
-      <!-- Right earring -->
+      <!-- Right earring - modern golden drops -->
       <circle cx="144" cy="90" r="5" fill="url(#metalG)"/>
-      <ellipse cx="144" cy="98" rx="4" ry="5" fill="#77c9c0"/>
+      <ellipse cx="144" cy="98" rx="4" ry="5" fill="#ffd700"/>
       <ellipse cx="144" cy="105" rx="3" ry="4" fill="url(#metalG)"/>
 
       <!-- ═══ FACE FEATURES ═══ -->
-      <!-- Eyes - almond shaped -->
+      <!-- Eyes - almond shaped with blue eyes -->
       <ellipse cx="82" cy="85" rx="10" ry="8" fill="#fff"/>
       <ellipse cx="118" cy="85" rx="10" ry="8" fill="#fff"/>
-      <!-- Irises -->
-      <circle cx="84" cy="86" r="6" fill="#3a1808"/>
-      <circle cx="120" cy="86" r="6" fill="#3a1808"/>
+      <!-- Irises - bright blue -->
+      <circle cx="84" cy="86" r="6" fill="#4a90e2"/>
+      <circle cx="120" cy="86" r="6" fill="#4a90e2"/>
       <!-- Pupils -->
-      <circle cx="85" cy="87" r="3.5" fill="#0a0404"/>
-      <circle cx="121" cy="87" r="3.5" fill="#0a0404"/>
-      <!-- Eye highlights -->
+      <circle cx="85" cy="87" r="3.5" fill="#0a0a1a"/>
+      <circle cx="121" cy="87" r="3.5" fill="#0a0a1a"/>
+      <!-- Eye highlights (bright) -->
       <circle cx="87" cy="84" r="1.8" fill="#fff"/>
       <circle cx="123" cy="84" r="1.8" fill="#fff"/>
-      <circle cx="83" cy="88" r=".9" fill="rgba(255,255,255,.5)"/>
-      <circle cx="119" cy="88" r=".9" fill="rgba(255,255,255,.5)"/>
-      <!-- Eyeliner (kajal) -->
-      <path d="M72 84 Q82 80 92 84 Q88 90 82 90 Q76 90 72 84Z" fill="rgba(20,10,5,.22)"/>
-      <path d="M108 84 Q118 80 128 84 Q124 90 118 90 Q112 90 108 84Z" fill="rgba(20,10,5,.22)"/>
+      <circle cx="83" cy="88" r=".9" fill="rgba(255,255,255,.8)"/>
+      <circle cx="119" cy="88" r=".9" fill="rgba(255,255,255,.8)"/>
+      <!-- Eyeliner (modern soft liner) -->
+      <path d="M72 84 Q82 80 92 84 Q88 90 82 90 Q76 90 72 84Z" fill="rgba(100,100,100,.15)"/>
+      <path d="M108 84 Q118 80 128 84 Q124 90 118 90 Q112 90 108 84Z" fill="rgba(100,100,100,.15)"/>
       <!-- Eyelashes upper left -->
-      <path d="M72 83 Q74 79 78 81" stroke="#0a0504" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-      <path d="M76 80 Q79 76 82 79" stroke="#0a0504" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-      <path d="M82 79 Q86 75 88 78" stroke="#0a0504" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M72 83 Q74 79 78 81" stroke="#333" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M76 80 Q79 76 82 79" stroke="#333" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M82 79 Q86 75 88 78" stroke="#333" stroke-width="1.5" stroke-linecap="round" fill="none"/>
       <!-- Eyelashes upper right -->
-      <path d="M108 80 Q112 76 114 79" stroke="#0a0504" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-      <path d="M114 78 Q118 74 120 78" stroke="#0a0504" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-      <path d="M120 79 Q124 76 126 80" stroke="#0a0504" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-      <!-- Eyebrows (thick, shaped) -->
-      <path d="M70 76 Q82 70 94 74" stroke="#2a1008" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-      <path d="M106 74 Q118 70 130 76" stroke="#2a1008" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-      <!-- Nose (delicate) -->
-      <path d="M96 98 Q100 108 104 98" stroke="#b68267" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-      <circle cx="94" cy="100" r="2.2" fill="rgba(96,64,48,.10)"/>
-      <circle cx="106" cy="100" r="2.2" fill="rgba(96,64,48,.10)"/>
-      <!-- Lips -->
-      <path d="M84 116 Q100 122 116 116" fill="#b86c72"/>
-      <path d="M84 116 Q100 111 116 116" fill="#cc858d"/>
+      <path d="M108 80 Q112 76 114 79" stroke="#333" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M114 78 Q118 74 120 78" stroke="#333" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M120 79 Q124 76 126 80" stroke="#333" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <!-- Eyebrows (modern thin arched) -->
+      <path d="M70 76 Q82 70 94 74" stroke="#b8956a" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+      <path d="M106 74 Q118 70 130 76" stroke="#b8956a" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+      <!-- Nose (delicate modern) -->
+      <path d="M96 98 Q100 108 104 98" stroke="#ddb8a0" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      <circle cx="94" cy="100" r="2.2" fill="rgba(200,150,140,.08)"/>
+      <circle cx="106" cy="100" r="2.2" fill="rgba(200,150,140,.08)"/>
+      <!-- Lips - modern gradient pink -->
+      <path d="M84 116 Q100 122 116 116" fill="#ff69b4"/>
+      <path d="M84 116 Q100 111 116 116" fill="#ffb6d9"/>
       <!-- Lip shine -->
-      <path d="M90 114 Q100 111 110 114" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.3" stroke-linecap="round"/>
-      <!-- Cheek blush -->
+      <path d="M90 114 Q100 111 110 114" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.3" stroke-linecap="round"/>
+      <!-- Cheek blush (rosy) -->
       <ellipse cx="68" cy="98" rx="13" ry="8" fill="url(#blushG)"/>
       <ellipse cx="132" cy="98" rx="13" ry="8" fill="url(#blushG)"/>
 
