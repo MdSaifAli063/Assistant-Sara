@@ -135,7 +135,6 @@ Sara is a beautifully detailed SVG character:
 
 ---
 
-
 ## 🔧 Customization
 
 ### Change Language Default
