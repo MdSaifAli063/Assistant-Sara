@@ -958,105 +958,76 @@ body{
    <div class="avatar-wrap">
     <div class="avatar-shadow"></div>
     <!--
-      Sara: Beautiful Indian girl, traditional lehenga choli,
-      detailed face, jewelry, long hair with bun + flowers
+      Sara: stylish room companion with a modern Indo-western look,
+      polished face lighting, soft glam makeup, and sleek hair
     -->
     <svg class="sara-svg" viewBox="0 0 200 420" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <!-- Lehenga gradient - soft pastel modern palette -->
-        <linearGradient id="lehengaG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#8fd8d2"/>
-          <stop offset="40%" stop-color="#68b8c5"/>
-          <stop offset="100%" stop-color="#4d8fb0"/>
+        <!-- Modern trousers -->
+        <linearGradient id="pantsG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#a7dde1"/>
+          <stop offset="45%" stop-color="#7fc3d2"/>
+          <stop offset="100%" stop-color="#5f96b7"/>
         </linearGradient>
-        <!-- Choli (blouse) gradient -->
-        <linearGradient id="choliG" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#f8b0a5"/>
-          <stop offset="100%" stop-color="#e7838b"/>
+        <!-- Blazer -->
+        <linearGradient id="blazerG" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#f8d7df"/>
+          <stop offset="100%" stop-color="#e9a7b7"/>
         </linearGradient>
-        <!-- Dupatta gradient -->
-        <linearGradient id="dupattaG" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#ffd5dc"/>
-          <stop offset="100%" stop-color="#e88ab2"/>
+        <!-- Inner top -->
+        <linearGradient id="topG" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#fff9f7"/>
+          <stop offset="100%" stop-color="#f4ece7"/>
         </linearGradient>
         <!-- Skin tone -->
         <linearGradient id="skinG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#ffe7d7"/>
-          <stop offset="55%" stop-color="#f8d4c4"/>
-          <stop offset="100%" stop-color="#efbea9"/>
+          <stop offset="0%" stop-color="#f3ccb2"/>
+          <stop offset="55%" stop-color="#ddb090"/>
+          <stop offset="100%" stop-color="#c49072"/>
         </linearGradient>
         <!-- Hair -->
         <linearGradient id="hairG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#3f2a27"/>
-          <stop offset="100%" stop-color="#241615"/>
+          <stop offset="0%" stop-color="#372120"/>
+          <stop offset="100%" stop-color="#1f1111"/>
         </linearGradient>
-        <!-- Gold jewelry -->
-        <linearGradient id="goldG" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#ffd995"/>
-          <stop offset="100%" stop-color="#e4ab55"/>
+        <!-- Metallic accents -->
+        <linearGradient id="metalG" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#f6dfad"/>
+          <stop offset="100%" stop-color="#d8a04d"/>
         </linearGradient>
-        <!-- Lehenga pattern overlay -->
-        <pattern id="lehengaPat" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-          <circle cx="10" cy="10" r="2" fill="rgba(255,215,0,.25)"/>
-          <circle cx="0" cy="0" r="1" fill="rgba(255,215,0,.15)"/>
-          <circle cx="20" cy="20" r="1" fill="rgba(255,215,0,.15)"/>
-        </pattern>
         <radialGradient id="blushG" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="rgba(236,150,156,.34)"/>
+          <stop offset="0%" stop-color="rgba(187,104,106,.18)"/>
           <stop offset="100%" stop-color="transparent"/>
         </radialGradient>
         <radialGradient id="faceGlow" cx="45%" cy="35%" r="65%">
-          <stop offset="0%" stop-color="rgba(255,255,255,.34)"/>
+          <stop offset="0%" stop-color="rgba(255,240,228,.20)"/>
+          <stop offset="70%" stop-color="rgba(255,227,213,.08)"/>
+          <stop offset="100%" stop-color="transparent"/>
+        </radialGradient>
+        <radialGradient id="cheekLight" cx="50%" cy="50%" r="60%">
+          <stop offset="0%" stop-color="rgba(255,233,221,.18)"/>
           <stop offset="100%" stop-color="transparent"/>
         </radialGradient>
       </defs>
 
-      <!-- ═══ LEHENGA (skirt) ═══ -->
-      <!-- Main skirt bell shape -->
-      <path d="M58 200 Q30 260 18 360 Q50 385 100 388 Q150 385 182 360 Q170 260 142 200 Z"
-            fill="url(#lehengaG)"/>
-      <!-- Pattern overlay -->
-      <path d="M58 200 Q30 260 18 360 Q50 385 100 388 Q150 385 182 360 Q170 260 142 200 Z"
-            fill="url(#lehengaPat)" opacity=".55"/>
-      <!-- Skirt border / hem -->
-      <path d="M18 360 Q50 385 100 388 Q150 385 182 360"
-            fill="none" stroke="#ffd060" stroke-width="6"/>
-      <!-- Border floral pattern dots -->
-      <g fill="#ffd060" opacity=".9">
-        <circle cx="30" cy="358" r="3"/><circle cx="55" cy="370" r="2"/>
-        <circle cx="80" cy="375" r="3"/><circle cx="100" cy="378" r="3"/>
-        <circle cx="120" cy="375" r="3"/><circle cx="145" cy="370" r="2"/>
-        <circle cx="170" cy="358" r="3"/>
-      </g>
-      <!-- Gold decorative band near waist -->
-      <path d="M62 202 Q100 210 138 202" fill="none" stroke="#ffd060" stroke-width="4"/>
-      <!-- Pleats suggestion -->
-      <line x1="80"  y1="210" x2="60"  y2="380" stroke="rgba(0,180,160,.3)" stroke-width="1.5"/>
-      <line x1="100" y1="212" x2="100" y2="382" stroke="rgba(0,180,160,.3)" stroke-width="1.5"/>
-      <line x1="120" y1="210" x2="140" y2="380" stroke="rgba(0,180,160,.3)" stroke-width="1.5"/>
-
-      <!-- ═══ DUPATTA (draped scarf) ═══ -->
-      <!-- Over left shoulder flowing down -->
-      <path d="M55 148 Q20 190 16 280 Q10 300 20 320" fill="none"
-            stroke="url(#dupattaG)" stroke-width="14" stroke-linecap="round" opacity=".92"/>
-      <!-- Dupatta over right, floating end -->
-      <path d="M145 148 Q170 180 175 240 Q178 270 168 310"
-            fill="none" stroke="url(#dupattaG)" stroke-width="10" stroke-linecap="round" opacity=".82"
-            style="animation:dupattaWave 4s ease-in-out infinite"/>
-      <!-- Dupatta decorative border -->
-      <path d="M55 148 Q20 190 16 280" fill="none"
-            stroke="#ffd060" stroke-width="2" stroke-dasharray="4,6" opacity=".6"/>
-
-      <!-- ═══ CHOLI (blouse) ═══ -->
-      <path d="M58 148 Q50 165 52 200 Q76 210 100 210 Q124 210 148 200 Q150 165 142 148 Q120 158 100 158 Q80 158 58 148Z"
-            fill="url(#choliG)"/>
-      <!-- Choli neckline gold trim -->
-      <path d="M68 150 Q100 165 132 150" fill="none" stroke="#ffd060" stroke-width="2.5"/>
-      <!-- Choli embroidery dots -->
-      <g fill="#ffd060">
-        <circle cx="80" cy="170" r="2"/><circle cx="100" cy="175" r="2.5"/>
-        <circle cx="120" cy="170" r="2"/>
-      </g>
+      <!-- ═══ MODERN OUTFIT ═══ -->
+      <!-- Wide-leg trousers -->
+      <path d="M70 205 L94 205 L90 388 Q78 392 66 388 Q66 302 70 205Z" fill="url(#pantsG)"/>
+      <path d="M106 205 L130 205 L134 388 Q122 392 110 388 Q106 302 106 205Z" fill="url(#pantsG)"/>
+      <path d="M95 205 L105 205 L108 390 L92 390 Z" fill="#e7f4f4" opacity=".7"/>
+      <!-- Blazer body -->
+      <path d="M58 148 Q54 172 58 210 Q76 222 100 224 Q124 222 142 210 Q146 172 142 148 Q121 156 100 156 Q79 156 58 148Z"
+            fill="url(#blazerG)"/>
+      <!-- Blazer lapels -->
+      <path d="M82 154 L96 192 L84 220 Q74 204 72 174 Z" fill="#fff7f3"/>
+      <path d="M118 154 L104 192 L116 220 Q126 204 128 174 Z" fill="#fff7f3"/>
+      <!-- Inner top -->
+      <path d="M88 154 Q84 172 86 210 Q100 214 114 210 Q116 172 112 154 Q100 160 88 154Z" fill="url(#topG)"/>
+      <!-- Waist band -->
+      <path d="M72 205 Q100 214 128 205" fill="none" stroke="url(#metalG)" stroke-width="3"/>
+      <!-- Pocket / seam details -->
+      <path d="M76 230 L82 384" stroke="rgba(255,255,255,.28)" stroke-width="1.5"/>
+      <path d="M124 230 L118 384" stroke="rgba(255,255,255,.28)" stroke-width="1.5"/>
 
       <!-- ═══ ARMS ═══ -->
       <!-- Left arm -->
@@ -1065,87 +1036,64 @@ body{
       <path d="M142 155 Q165 175 172 205 Q164 211 157 206 Q148 178 132 162Z"
             fill="url(#skinG)"
             style="transform-origin:142px 162px;animation:saraWave 3.5s ease-in-out infinite"/>
-      <!-- Bangles left -->
-      <ellipse cx="38" cy="212" rx="9" ry="5" fill="none" stroke="#ff4080" stroke-width="3"/>
-      <ellipse cx="38" cy="218" rx="9" ry="5" fill="none" stroke="#ffd060" stroke-width="2"/>
-      <!-- Bangles right -->
-      <ellipse cx="164" cy="200" rx="9" ry="5" fill="none" stroke="#ff4080" stroke-width="3"
+      <!-- Blazer sleeves -->
+      <path d="M58 152 Q36 180 34 214 Q41 217 47 214 Q52 186 70 160Z" fill="url(#blazerG)" opacity=".96"/>
+      <path d="M142 152 Q164 174 169 202 Q162 206 156 202 Q149 178 130 160Z"
+            fill="url(#blazerG)" opacity=".96"
+            style="transform-origin:142px 162px;animation:saraWave 3.5s ease-in-out infinite"/>
+      <!-- Bracelets -->
+      <ellipse cx="39" cy="216" rx="8" ry="4.5" fill="none" stroke="#d991a9" stroke-width="2.6"/>
+      <ellipse cx="164" cy="199" rx="8" ry="4.5" fill="none" stroke="#d991a9" stroke-width="2.6"
                style="transform-origin:142px 162px;animation:saraWave 3.5s ease-in-out infinite"/>
       <!-- Hands -->
       <ellipse cx="33" cy="222" rx="9" ry="8" fill="url(#skinG)"/>
       <ellipse cx="168" cy="208" rx="9" ry="8" fill="url(#skinG)"
                style="transform-origin:142px 162px;animation:saraWave 3.5s ease-in-out infinite"/>
-      <!-- Mehendi pattern on hand -->
-      <path d="M28 220 Q33 216 38 220" fill="none" stroke="#d04020" stroke-width="1" opacity=".7"/>
 
       <!-- ═══ NECK ═══ -->
       <rect x="88" y="118" width="24" height="24" rx="12" fill="url(#skinG)"/>
 
-      <!-- ═══ NECKLACE ═══ -->
-      <path d="M72 148 Q100 165 128 148" fill="none" stroke="url(#goldG)" stroke-width="3"/>
-      <circle cx="100" cy="163" r="5" fill="url(#goldG)"/>
-      <circle cx="85"  cy="158" r="3" fill="url(#goldG)"/>
-      <circle cx="115" cy="158" r="3" fill="url(#goldG)"/>
-      <!-- necklace pendants -->
+      <!-- ═══ ACCESSORIES ═══ -->
+      <path d="M78 148 Q100 165 122 148" fill="none" stroke="url(#metalG)" stroke-width="2.6"/>
+      <circle cx="100" cy="162" r="4" fill="url(#metalG)"/>
       <ellipse cx="100" cy="169" rx="4" ry="5" fill="#77c9c0"/>
       <ellipse cx="85"  cy="163" rx="3" ry="4" fill="#f197af"/>
       <ellipse cx="115" cy="163" rx="3" ry="4" fill="#f197af"/>
 
       <!-- ═══ HEAD ═══ -->
       <!-- Neck shadow -->
-      <ellipse cx="100" cy="120" rx="14" ry="4" fill="rgba(180,100,60,.15)"/>
+      <ellipse cx="100" cy="120" rx="14" ry="4" fill="rgba(118,78,55,.18)"/>
       <!-- Head -->
       <ellipse cx="100" cy="82" rx="44" ry="48" fill="url(#skinG)"/>
       <ellipse cx="92" cy="74" rx="28" ry="24" fill="url(#faceGlow)"/>
       <!-- Face shading -->
-      <ellipse cx="100" cy="90" rx="40" ry="38" fill="rgba(240,182,155,.10)"/>
+      <ellipse cx="100" cy="92" rx="40" ry="38" fill="rgba(116,78,59,.08)"/>
+      <ellipse cx="68" cy="98" rx="14" ry="9" fill="url(#cheekLight)"/>
+      <ellipse cx="132" cy="98" rx="14" ry="9" fill="url(#cheekLight)"/>
 
       <!-- ═══ HAIR ═══ -->
       <!-- Back hair bulk -->
-      <ellipse cx="100" cy="72" rx="46" ry="52" fill="url(#hairG)"/>
-      <!-- Front hair parting -->
-      <path d="M56 68 Q58 36 100 28 Q142 36 144 68 Q132 50 100 48 Q68 50 56 68Z" fill="url(#hairG)"/>
+      <ellipse cx="100" cy="78" rx="47" ry="56" fill="url(#hairG)"/>
+      <!-- Smooth center-part front -->
+      <path d="M56 68 Q58 34 100 28 Q142 34 144 68 Q132 48 100 46 Q68 48 56 68Z" fill="url(#hairG)"/>
       <!-- Hair highlight -->
-      <path d="M60 62 Q62 44 80 38" fill="none" stroke="rgba(122,84,72,.28)" stroke-width="3" stroke-linecap="round"/>
+      <path d="M62 60 Q70 42 88 40" fill="none" stroke="rgba(201,170,150,.14)" stroke-width="3" stroke-linecap="round"/>
       <!-- Side hair left -->
-      <path d="M56 68 Q48 88 50 118 Q56 112 60 96 Q58 82 56 68Z" fill="url(#hairG)"/>
+      <path d="M56 68 Q50 96 56 132 Q62 124 64 96 Q61 82 56 68Z" fill="url(#hairG)"/>
       <!-- Side hair right -->
-      <path d="M144 68 Q152 88 150 118 Q144 112 140 96 Q142 82 144 68Z" fill="url(#hairG)"/>
-
-      <!-- ═══ BINDI ═══ -->
-      <circle cx="100" cy="54" r="4" fill="#d86284"/>
-      <circle cx="100" cy="54" r="2" fill="#ffced7"/>
-
-      <!-- ═══ HAIR BUN with flowers ═══ -->
-      <circle cx="100" cy="28" r="18" fill="url(#hairG)"/>
-      <circle cx="100" cy="28" r="13" fill="#2a1810"/>
-      <!-- Bun flowers -->
-      <g fill="#f8a8be" opacity=".95">
-        <circle cx="94" cy="14" r="4"/>
-        <circle cx="106" cy="14" r="4"/>
-        <circle cx="88" cy="22" r="3.5"/>
-        <circle cx="112" cy="22" r="3.5"/>
-      </g>
-      <g fill="#ffd060" opacity=".8">
-        <circle cx="100" cy="12" r="3"/>
-        <circle cx="84" cy="28" r="2.5"/>
-        <circle cx="116" cy="28" r="2.5"/>
-      </g>
-      <!-- Maang tikka (hair jewelry) -->
-      <line x1="100" y1="28" x2="100" y2="52" stroke="url(#goldG)" stroke-width="1.5"/>
-      <circle cx="100" cy="52" r="3" fill="url(#goldG)"/>
-      <circle cx="95" cy="30" r="2" fill="url(#goldG)"/>
-      <circle cx="105" cy="30" r="2" fill="url(#goldG)"/>
+      <path d="M144 68 Q150 96 144 132 Q138 124 136 96 Q139 82 144 68Z" fill="url(#hairG)"/>
+      <!-- Low ponytail -->
+      <path d="M95 128 Q88 172 94 222 Q100 236 108 222 Q114 172 105 128Z" fill="url(#hairG)" opacity=".96"/>
 
       <!-- ═══ EARRINGS ═══ -->
       <!-- Left earring -->
-      <circle cx="56" cy="90" r="5" fill="url(#goldG)"/>
+      <circle cx="56" cy="90" r="5" fill="url(#metalG)"/>
       <ellipse cx="56" cy="98" rx="4" ry="5" fill="#77c9c0"/>
-      <ellipse cx="56" cy="105" rx="3" ry="4" fill="url(#goldG)"/>
+      <ellipse cx="56" cy="105" rx="3" ry="4" fill="url(#metalG)"/>
       <!-- Right earring -->
-      <circle cx="144" cy="90" r="5" fill="url(#goldG)"/>
+      <circle cx="144" cy="90" r="5" fill="url(#metalG)"/>
       <ellipse cx="144" cy="98" rx="4" ry="5" fill="#77c9c0"/>
-      <ellipse cx="144" cy="105" rx="3" ry="4" fill="url(#goldG)"/>
+      <ellipse cx="144" cy="105" rx="3" ry="4" fill="url(#metalG)"/>
 
       <!-- ═══ FACE FEATURES ═══ -->
       <!-- Eyes - almond shaped -->
@@ -1163,8 +1111,8 @@ body{
       <circle cx="83" cy="88" r=".9" fill="rgba(255,255,255,.5)"/>
       <circle cx="119" cy="88" r=".9" fill="rgba(255,255,255,.5)"/>
       <!-- Eyeliner (kajal) -->
-      <path d="M72 84 Q82 80 92 84 Q88 90 82 90 Q76 90 72 84Z" fill="rgba(20,10,5,.25)"/>
-      <path d="M108 84 Q118 80 128 84 Q124 90 118 90 Q112 90 108 84Z" fill="rgba(20,10,5,.25)"/>
+      <path d="M72 84 Q82 80 92 84 Q88 90 82 90 Q76 90 72 84Z" fill="rgba(20,10,5,.22)"/>
+      <path d="M108 84 Q118 80 128 84 Q124 90 118 90 Q112 90 108 84Z" fill="rgba(20,10,5,.22)"/>
       <!-- Eyelashes upper left -->
       <path d="M72 83 Q74 79 78 81" stroke="#0a0504" stroke-width="1.5" stroke-linecap="round" fill="none"/>
       <path d="M76 80 Q79 76 82 79" stroke="#0a0504" stroke-width="1.5" stroke-linecap="round" fill="none"/>
@@ -1177,30 +1125,26 @@ body{
       <path d="M70 76 Q82 70 94 74" stroke="#2a1008" stroke-width="3.5" stroke-linecap="round" fill="none"/>
       <path d="M106 74 Q118 70 130 76" stroke="#2a1008" stroke-width="3.5" stroke-linecap="round" fill="none"/>
       <!-- Nose (delicate) -->
-      <path d="M96 98 Q100 108 104 98" stroke="#d09a83" stroke-width="2" stroke-linecap="round" fill="none"/>
-      <circle cx="94" cy="100" r="2.5" fill="rgba(196,141,120,.14)"/>
-      <circle cx="106" cy="100" r="2.5" fill="rgba(196,141,120,.14)"/>
-      <!-- Nose ring (nath) - small gold ring on left nostril -->
-      <circle cx="94" cy="101" r="2.5" fill="none" stroke="#ffd060" stroke-width="1.2"/>
+      <path d="M96 98 Q100 108 104 98" stroke="#b68267" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      <circle cx="94" cy="100" r="2.2" fill="rgba(96,64,48,.10)"/>
+      <circle cx="106" cy="100" r="2.2" fill="rgba(96,64,48,.10)"/>
       <!-- Lips -->
-      <path d="M84 116 Q100 122 116 116" fill="#d97d8f"/>
-      <path d="M84 116 Q100 111 116 116" fill="#ef9fb1"/>
+      <path d="M84 116 Q100 122 116 116" fill="#b86c72"/>
+      <path d="M84 116 Q100 111 116 116" fill="#cc858d"/>
       <!-- Lip shine -->
-      <path d="M90 114 Q100 111 110 114" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M90 114 Q100 111 110 114" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.3" stroke-linecap="round"/>
       <!-- Cheek blush -->
       <ellipse cx="68" cy="98" rx="13" ry="8" fill="url(#blushG)"/>
       <ellipse cx="132" cy="98" rx="13" ry="8" fill="url(#blushG)"/>
 
       <!-- ═══ FEET / SHOES ═══ -->
-      <ellipse cx="84"  cy="392" rx="14" ry="7" fill="#2a1810"/>
-      <ellipse cx="116" cy="392" rx="14" ry="7" fill="#2a1810"/>
-      <!-- Anklets -->
-      <path d="M74 384 Q84 388 94 384" fill="none" stroke="#ffd060" stroke-width="2"/>
-      <path d="M106 384 Q116 388 126 384" fill="none" stroke="#ffd060" stroke-width="2"/>
+      <ellipse cx="84"  cy="392" rx="14" ry="7" fill="#f1e8e1"/>
+      <ellipse cx="116" cy="392" rx="14" ry="7" fill="#f1e8e1"/>
+      <path d="M73 388 Q84 384 95 388" fill="none" stroke="#d5c6bf" stroke-width="2"/>
+      <path d="M105 388 Q116 384 127 388" fill="none" stroke="#d5c6bf" stroke-width="2"/>
 
       <style>
         @keyframes saraWave{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-18deg)}}
-        @keyframes dupattaWave{0%,100%{transform:rotate(0deg) translateX(0)}50%{transform:rotate(4deg) translateX(4px)}}
       </style>
     </svg>
    </div>
